@@ -2,6 +2,11 @@
 .venv/
 __pycache__/
 *.pyc
-outputs/cache/
-outputs/results/*.png
-outputs/results/*.csv
+
+# Results: the parquets are the artefact and are tracked. The decode cache is ~22 MB of
+# regenerable binary, and figures are regenerable from the parquets/cache, so neither is.
+outputs/*
+!outputs/results/
+outputs/results/*
+!outputs/results/*.parquet
+!outputs/results/variance_by_window*.csv
