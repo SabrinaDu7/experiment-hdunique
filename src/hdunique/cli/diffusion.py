@@ -10,12 +10,12 @@ command of record. See docs/REPRODUCING.md.
 """
 
 import dataclasses
-import json
 import time
 
 import numpy as np
 import tyro
 
+from hdunique import diffusion as dif
 from hdunique import loader, plotting, sweep
 from hdunique.config import DIFFUSION_LAGS, HEADLINE_WINDOW_MS, DiffusionConfig
 from hdunique.env import cache_dir, results_dir
@@ -36,17 +36,16 @@ def _print_row(*, row: dict[str, object], elapsed: float) -> None:
 
 def _plot_session(*, cfg: DiffusionConfig, row: dict[str, object]) -> None:
     """Save the single-session diffusion-curve figure."""
-    curve = np.array(row["curve_rad2"], dtype=float)
     plotting.plot_session_diffusion(
-        panel={
-            "lags_s": np.array(DIFFUSION_LAGS, dtype=float) * cfg.dt,
-            "curve": curve,
-            "D": float(row["D"]),
-            "r2": float(row["r2"]),
-            "n_cells": int(row["n_cells"]),
-            "title": f"{row['session_id']}  ({row['n_cells']} {row['cell_set']} cells)",
-        },
-        n_fit=round(HEADLINE_WINDOW_MS / 1000.0 / cfg.dt),
+        panel=plotting.DiffusionPanel(
+            title=f"{row['session_id']}  ({row['n_cells']} {row['cell_set']} cells)",
+            lags_s=np.array(DIFFUSION_LAGS, dtype=float) * cfg.dt,
+            curve=np.array(row["curve_rad2"], dtype=float),
+            d=float(row["D"]),
+            r2=float(row["r2"]),
+            n_cells=int(row["n_cells"]),
+        ),
+        n_fit=len(dif.window_lags(dt=cfg.dt, window_ms=HEADLINE_WINDOW_MS)),
         window_ms=HEADLINE_WINDOW_MS,
         save_path=results_dir() / f"{cfg.session_id}_{cfg.cell_set}_rem_diffusion.png",
     )
@@ -54,22 +53,16 @@ def _plot_session(*, cfg: DiffusionConfig, row: dict[str, object]) -> None:
 
 def run_recompute_only(*, cfg: DiffusionConfig) -> None:
     """Rebuild the parquets straight from cached decoded angles — no NWB, Isomap or ring fitting."""
-    files = sorted(cache_dir().glob("*.npz"))
-    if not files:
+    by_mouse: dict[int, list[dict[str, object]]] = {}
+    for entry in sweep.iter_cache():
+        row = sweep.row_from_decodes(
+            cfg=cfg, meta=entry.meta, decoded=entry.decoded, bout_lengths=entry.bout_lengths
+        )
+        by_mouse.setdefault(int(entry.meta["mouse"]), []).append(row)
+        _print_row(row=row, elapsed=0.0)
+    if not by_mouse:
         print(f"No cache in {cache_dir()}; run a full sweep first.")
         return
-    by_mouse: dict[int, list[dict[str, object]]] = {}
-    for path in files:
-        z = np.load(path, allow_pickle=False)
-        meta = json.loads(str(z["meta"]))
-        row = sweep.row_from_decodes(
-            cfg=cfg,
-            meta=meta,
-            decoded=z["decoded"].astype(float),
-            bout_lengths=[int(v) for v in z["bout_lengths"]],
-        )
-        by_mouse.setdefault(int(meta["mouse"]), []).append(row)
-        _print_row(row=row, elapsed=0.0)
     for mouse, rows in by_mouse.items():
         sweep.save_parquet(mouse=mouse, rows=rows)
 
@@ -111,6 +104,7 @@ def run(*, cfg: DiffusionConfig) -> None:
 
 
 def main() -> None:
+    """Console-script entry point for `hd-diffusion`."""
     run(cfg=tyro.cli(DiffusionConfig))
 
 

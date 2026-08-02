@@ -9,7 +9,7 @@ The decode is deterministic given the seed — `fit_manifold` draws its k-means 
 NumPy RNG, which the sweep seeds per refit — so agreement should be essentially exact. A large
 divergence means the port changed the pipeline, not just the reporting.
 
-    uv run python throwaway/verify_cache.py --sessions 28-140313 25-140130
+    uv run python scripts/verify_cache.py --sessions 28-140313 25-140130
 """
 
 import dataclasses
@@ -18,8 +18,7 @@ import numpy as np
 import tyro
 
 from hdunique import diffusion as dif
-from hdunique import manifold, rates, sweep
-from hdunique import loader
+from hdunique import loader, manifold, rates, sweep
 from hdunique.config import DIFFUSION_LAGS, HEADLINE_WINDOW_MS, DiffusionConfig
 
 
@@ -32,25 +31,19 @@ class VerifyConfig:
 
 
 def recompute(*, cfg: DiffusionConfig) -> tuple[np.ndarray, np.ndarray]:
-    """Run the full pipeline cold for one session. Returns (embedding, decoded angles)."""
+    """Run the full pipeline cold for one session. Returns (embedding, decoded angles).
+
+    Deliberately mirrors `sweep.run_session` without its cache, so what is compared is the
+    pipeline's own output rather than anything the cache handed back.
+    """
     data = loader.load_session(mouse=cfg.mouse, session=cfg.session)
     units = loader.get_units(data=data)
     units_sel, _ = loader.select_units_by_area(units=units, areas=cfg.cell_areas)
     rem = loader.load_state_epochs(data=data, state=cfg.rem_label)
 
     rate_mat = rates.rate_matrix(units=units_sel, epochs=rem, dt=cfg.dt, sigma=cfg.sigma)
-    rate_mat = rate_mat[: cfg.n_samples]
-    embed = manifold.isomap_embed(rates=rate_mat, cfg=cfg)
-
-    traces = []
-    for refit in range(cfg.n_refits):
-        np.random.seed(cfg.seed + refit)
-        traces.append(
-            manifold.decode_ring_angle(
-                embed=embed, cfg=cfg, rng=np.random.default_rng(cfg.seed + refit)
-            )
-        )
-    return embed, np.array(traces)
+    embed = manifold.isomap_embed(rates=rate_mat[: cfg.n_samples], cfg=cfg)
+    return embed, manifold.decode_refits(embed=embed, cfg=cfg)
 
 
 def verify_one(*, mouse: int, session: int, cell_areas: tuple[str, ...]) -> None:
@@ -62,8 +55,7 @@ def verify_one(*, mouse: int, session: int, cell_areas: tuple[str, ...]) -> None
         return
 
     embed, decoded = recompute(cfg=cfg)
-    cached_embed = np.asarray(cached["embed"])
-    cached_decoded = np.asarray(cached["decoded"])
+    cached_embed, cached_decoded = cached.embed, cached.decoded
 
     print(f"\n=== {cfg.session_id} [{cfg.cell_set}] ===")
     print(f"  shapes: embed {embed.shape} vs {cached_embed.shape}; "
@@ -92,6 +84,7 @@ def run(*, cfg: VerifyConfig) -> None:
 
 
 def main() -> None:
+    """Entry point: `uv run python scripts/verify_cache.py`."""
     run(cfg=tyro.cli(VerifyConfig))
 
 

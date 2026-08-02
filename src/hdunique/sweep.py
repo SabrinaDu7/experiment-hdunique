@@ -8,7 +8,9 @@ Pipeline per session (all of it the original M3 method, sourced from DANDI):
 Repeated `n_refits` times to give D mean +/- std.
 """
 
+import dataclasses
 import json
+from collections.abc import Iterator
 from pathlib import Path
 
 import numpy as np
@@ -32,6 +34,21 @@ MERGE_KEY: list[str] = ["session_id", "cell_set", "fit_frac"]
 
 
 # --- cache -------------------------------------------------------------------------------------
+@jaxtyped(typechecker=beartype)
+@dataclasses.dataclass(frozen=True)
+class CacheEntry:
+    """One cached run: everything downstream of the expensive fit, and the metadata describing it.
+
+    Holding it as a record rather than a loose dict means readers of the cache (the sweep, the
+    parquet rebuild, the grid figures) all see the same fields with the same types.
+    """
+
+    meta: dict[str, object]
+    embed: Float[np.ndarray, "time dim"]
+    decoded: Float[np.ndarray, "refit time"]
+    bout_lengths: list[int]
+
+
 def cache_path(*, session_id: str, cell_set: str) -> Path:
     """Cache file for one (session, cell set) run."""
     return cache_dir() / f"{session_id}__{cell_set.replace('+', '-')}.npz"
@@ -84,7 +101,18 @@ def save_cache(
     )
 
 
-def load_cache(*, cfg: DiffusionConfig) -> dict[str, object] | None:
+def read_cache_file(*, path: Path) -> CacheEntry:
+    """Read one cache file, widening the float32 storage back to float64. No signature check."""
+    z = np.load(path, allow_pickle=False)
+    return CacheEntry(
+        meta=json.loads(str(z["meta"])),
+        embed=z["embed"].astype(float),
+        decoded=z["decoded"].astype(float),
+        bout_lengths=[int(v) for v in z["bout_lengths"]],
+    )
+
+
+def load_cache(*, cfg: DiffusionConfig) -> CacheEntry | None:
     """Read a cache entry if it exists and its signature matches the current config, else None."""
     path = cache_path(session_id=cfg.session_id, cell_set=cfg.cell_set)
     if not path.exists():
@@ -92,12 +120,19 @@ def load_cache(*, cfg: DiffusionConfig) -> dict[str, object] | None:
     z = np.load(path, allow_pickle=False)
     if json.loads(str(z["signature"])) != cache_signature(cfg=cfg):
         return None
-    return {
-        "embed": z["embed"].astype(float),
-        "decoded": z["decoded"].astype(float),
-        "bout_lengths": [int(v) for v in z["bout_lengths"]],
-        "meta": json.loads(str(z["meta"])),
-    }
+    return read_cache_file(path=path)
+
+
+def iter_cache(*, cell_set: str | None = None) -> Iterator[CacheEntry]:
+    """Every cache entry on disk, in session order, optionally restricted to one cell set.
+
+    Used by the commands that work purely from cached decodes (the parquet rebuild and the grid
+    figures), which is what makes them seconds rather than hours.
+    """
+    entries = [read_cache_file(path=path) for path in sorted(cache_dir().glob("*.npz"))]
+    for entry in sorted(entries, key=lambda e: (int(e.meta["mouse"]), int(e.meta["session"]))):
+        if cell_set is None or entry.meta["cell_set"] == cell_set:
+            yield entry
 
 
 # --- metrics -----------------------------------------------------------------------------------
@@ -199,9 +234,9 @@ def run_session(*, cfg: DiffusionConfig) -> dict[str, object] | None:
     if cached is not None:
         return row_from_decodes(
             cfg=cfg,
-            meta=cached["meta"],
-            decoded=cached["decoded"],
-            bout_lengths=cached["bout_lengths"],
+            meta=cached.meta,
+            decoded=cached.decoded,
+            bout_lengths=cached.bout_lengths,
         )
 
     data = loader.load_session(mouse=cfg.mouse, session=cfg.session)
@@ -226,18 +261,7 @@ def run_session(*, cfg: DiffusionConfig) -> dict[str, object] | None:
     lengths = truncate_bouts(lengths=lengths, n_kept=len(rate_mat))
 
     embed = manifold.isomap_embed(rates=rate_mat, cfg=cfg)
-
-    traces = []
-    for refit in range(cfg.n_refits):
-        # fit_manifold seeds nothing: its k-means init draws from the global NumPy RNG. Seeding it
-        # per refit is what makes the sweep reproducible.
-        np.random.seed(cfg.seed + refit)
-        traces.append(
-            manifold.decode_ring_angle(
-                embed=embed, cfg=cfg, rng=np.random.default_rng(cfg.seed + refit)
-            )
-        )
-    decoded = np.array(traces)
+    decoded = manifold.decode_refits(embed=embed, cfg=cfg)
 
     meta: dict[str, object] = {
         "mouse": cfg.mouse,

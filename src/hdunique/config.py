@@ -107,8 +107,14 @@ class DiffusionConfig:
 
 
 @dataclasses.dataclass(frozen=True)
-class VarianceConfig:
-    """Between-mouse vs between-session variance decomposition of D."""
+class VarianceGateConfig:
+    """Which sessions enter a variance decomposition, and how its CIs are drawn.
+
+    Shared by both decompositions — the headline one and the by-fit-window robustness check — so
+    that the robustness check is guaranteed to gate on exactly what the headline gates on. (In the
+    source repo the two gates were written separately and had drifted apart; see the port record,
+    problem P3.)
+    """
 
     #: Sessions below this ADn cell count have an undersampled ring and an inflated D. Cell yield
     #: is confounded with mouse identity (Mouse20 is thin in every session), so ungated the
@@ -116,10 +122,6 @@ class VarianceConfig:
     min_adn_cells: int = 15
     cell_set: str = "ADn"
     mice: tuple[int, ...] = DANDI_MICE
-
-    #: Which fit window's D to decompose. The wider windows are a saturation diagnostic; the ICC
-    #: is invariant to this choice, which is itself a reported result.
-    window_ms: int = HEADLINE_WINDOW_MS
 
     #: Which of the two co-headline estimates to decompose: "D" pools every pair in the
     #: concatenated trace, "D_bout_aware" excludes pairs straddling a REM-bout boundary.
@@ -129,6 +131,15 @@ class VarianceConfig:
     #: with skewed sampling distributions, so Wald intervals would mislead here.
     n_bootstrap: int = 2000
     seed: int = 0
+
+
+@dataclasses.dataclass(frozen=True)
+class VarianceConfig(VarianceGateConfig):
+    """Between-mouse vs between-session variance decomposition of D at one fit window."""
+
+    #: Which fit window's D to decompose. The wider windows are a saturation diagnostic; the ICC
+    #: is invariant to this choice, which is itself a reported result.
+    window_ms: int = HEADLINE_WINDOW_MS
 
     #: Also fit the ungated data, so the gate's effect is visible rather than hidden.
     sensitivity_ungated: bool = True

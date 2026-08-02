@@ -66,6 +66,17 @@ def slope_through_origin(
 
 
 @jaxtyped(typechecker=beartype)
+def window_lags(*, dt: float, window_ms: int) -> Float[np.ndarray, " lag"]:
+    """Lag axis (s) the origin-forced fit spans: every multiple of `dt` up to `window_ms`.
+
+    Defined once so the fit, the bootstrap and the figures all agree on how many measured lags a
+    named window covers — the source repo recomputed this rounding at each call site.
+    """
+    n = round(window_ms / 1000.0 / dt)
+    return np.arange(1, n + 1, dtype=float) * dt
+
+
+@jaxtyped(typechecker=beartype)
 def window_slope(
     *, curve: Float[np.ndarray, " lag"], dt: float, window_ms: int
 ) -> tuple[float, float]:
@@ -75,9 +86,8 @@ def window_slope(
     flat means genuinely diffusive, monotonically falling means the curve saturates inside the
     window (crossover tau_c ~ pi^2 / 6D). It is not a set of alternative estimates of D.
     """
-    n = round(window_ms / 1000.0 / dt)
-    lags_s = np.arange(1, n + 1, dtype=float) * dt
-    return slope_through_origin(lags_s=lags_s, values=curve[:n])
+    lags_s = window_lags(dt=dt, window_ms=window_ms)
+    return slope_through_origin(lags_s=lags_s, values=curve[: len(lags_s)])
 
 
 @jaxtyped(typechecker=beartype)
@@ -137,9 +147,9 @@ def bootstrap_ci(
 
     Returns (nan, nan) if `n_boot <= 0` or the session has too few complete epochs.
     """
-    n_lags = round(window_ms / 1000.0 / dt)
-    epoch_bins = n_lags + 1
-    starts = epoch_starts(bout_lengths=bout_lengths, epoch_bins=epoch_bins).astype(int)
+    lags_s = window_lags(dt=dt, window_ms=window_ms)
+    n_lags = len(lags_s)
+    starts = epoch_starts(bout_lengths=bout_lengths, epoch_bins=n_lags + 1).astype(int)
     if n_boot <= 0 or len(starts) < 2:
         return float("nan"), float("nan")
 
@@ -149,14 +159,11 @@ def bootstrap_ci(
         diffs = af.signed_angular_diff(angles[starts + lag], angles[starts])
         per_epoch[:, lag - 1] = diffs**2
 
-    lags_s = np.arange(1, n_lags + 1, dtype=float) * dt
     rng = np.random.default_rng(seed)
     estimates = np.empty(n_boot)
     for b in range(n_boot):
         idx = rng.integers(0, len(starts), len(starts))
-        estimates[b], _ = slope_through_origin(
-            lags_s=lags_s, values=per_epoch[idx].mean(axis=0)
-        )
+        estimates[b], _ = slope_through_origin(lags_s=lags_s, values=per_epoch[idx].mean(axis=0))
     return float(np.percentile(estimates, 2.5)), float(np.percentile(estimates, 97.5))
 
 

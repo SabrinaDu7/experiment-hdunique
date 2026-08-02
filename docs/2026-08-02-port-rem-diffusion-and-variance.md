@@ -224,7 +224,7 @@ and therefore the decoded angles and everything upstream — is being read ident
 
 ### 4.3 A cold recompute from the NWBs reproduces the imported decode
 
-The strongest check: `throwaway/verify_cache.py` re-runs a whole session from the NWB files —
+The strongest check: `scripts/verify_cache.py` re-runs a whole session from the NWB files —
 rates, Isomap, all 50 ring fits, decode — and diffs against the imported cache. Two sessions were
 run cold, one small and one large:
 
@@ -339,7 +339,7 @@ See D5.
 The decode cache **is** shipped (tracked in git, ~22 MB), so `--recompute-only` and the figure
 commands work on a fresh clone without the multi-hour sweep.
 
-It was **imported** from the predecessor repo (`throwaway/migrate_cache.py`) rather
+It was **imported** from the predecessor repo (`scripts/migrate_cache.py`) rather
 than recomputed during the port, because the decode is the expensive step (~50 ring fits per
 session, 8–15 minutes each) and the change this port makes to the estimator is strictly downstream
 of it. The import is justified only by §4, which is why §4.3 recomputes cold from the raw data

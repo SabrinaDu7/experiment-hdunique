@@ -188,8 +188,8 @@ first spending hours on the sweep.
 
 They were imported from the predecessor repository, where the same pipeline and the same settings
 produced them, rather than recomputed from scratch during the port
-(`throwaway/migrate_cache.py`). They were then **validated** by recomputing whole sessions cold from
-the NWBs and diffing (`throwaway/verify_cache.py`): Mouse28-140313 ADn reproduced
+(`scripts/migrate_cache.py`). They were then **validated** by recomputing whole sessions cold from
+the NWBs and diffing (`scripts/verify_cache.py`): Mouse28-140313 ADn reproduced
 **bit-identically**. See the port doc's validation section.
 
 If you would rather not trust the import, delete the cache and run step 1 from scratch; the

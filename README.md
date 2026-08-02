@@ -54,17 +54,17 @@ src/
                  so it can be diffed against upstream. Exempt from this repo's style rules.
                  angle_fns, dim_red_fns, fit_helper_fns, manifold_fit_and_decode_fns, kernel_rates
 
-  hdunique/      The pipeline. Each module is one stage, and nothing does I/O at import.
+  hdunique/      The pipeline. One flat module per stage, and nothing does I/O at import.
     env.py         Where data comes from and results go (the DANDI_DATA_ROOT / OUTPUT_PATH contract)
-    config.py      DiffusionConfig, VarianceConfig and the shared constants. Every default is the
-                   setting that produced the published results.
+    config.py      DiffusionConfig, VarianceGateConfig / VarianceConfig and the shared constants.
+                   Every default is the setting that produced the published results.
     loader.py      DANDI/pynapple: sessions, spikes, REM epochs, cell selection by brain area
     rates.py       Sum-of-Gaussians firing rates, computed per REM bout
-    manifold.py    Isomap embedding, the 12-knot ring fit, and the decode
-    diffusion.py   The diffusion curve and the origin-forced fit — the estimator itself
-    sweep.py       One session -> one result row; the decode cache and the parquet tables
+    manifold.py    Isomap embedding, the 12-knot ring fit, and the per-refit decode
+    diffusion.py   The diffusion curve, the origin-forced fit and its bootstrap — the estimator
+    sweep.py       One session -> one result row; the CacheEntry record and the parquet tables
     variance.py    The random-intercept LMM, its bootstrap, and the ANOVA cross-check
-    plotting.py    Every figure
+    plotting.py    Every figure, plus the DiffusionPanel record both diffusion figures draw
     cli/           Entry points. Each is argument parsing and reporting only; the science is above.
       diffusion.py          -> hd-diffusion
       diffusion_grid.py     -> hd-diffusion-grid
@@ -72,12 +72,20 @@ src/
       variance_by_window.py -> hd-variance-by-window
 
 docs/            Methods, results, reproduction instructions, and the port record
-throwaway/       One-off scripts kept for provenance, not part of the pipeline
-outputs/results/ Parquets (tracked), decode cache and figures (not tracked)
+scripts/         Provenance tools that are not part of the pipeline: migrate_cache.py (how the
+                 shipped decode cache got here) and verify_cache.py (the cold recompute that
+                 validates it). Tracked, because the port record cites them as evidence.
+outputs/results/ Parquets and the decode cache (tracked), figures (not tracked)
 ```
 
+`hdunique/` is ten modules, so it is deliberately **flat**: an `io/` or `analysis/` subpackage
+would add import depth without removing a single decision about where code goes. `cli/` is the one
+subpackage that earns its keep, because it is the only group with a shared contract (each module
+exposes `run(cfg=...)` plus a `main()` console script).
+
 The dependency order is strictly one-way: `cli/ → sweep, variance → diffusion, manifold, rates →
-loader, config, env → spud`. Nothing in `hdunique/` is imported by `spud/`.
+loader, config, env → spud`. Nothing in `hdunique/` is imported by `spud/`, and `scripts/` imports
+`hdunique/` but nothing imports `scripts/`.
 
 ### Where the results live
 
