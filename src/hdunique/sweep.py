@@ -195,7 +195,7 @@ def run_session(*, cfg: DiffusionConfig) -> dict[str, object] | None:
 
     # The n_samples cap truncates the concatenated trace, so truncate the bout structure to match.
     rate_mat = rate_mat[: cfg.n_samples]
-    lengths = _truncate_bouts(lengths=lengths, n_kept=len(rate_mat))
+    lengths = truncate_bouts(lengths=lengths, n_kept=len(rate_mat))
 
     embed = manifold.isomap_embed(rates=rate_mat, cfg=cfg)
 
@@ -233,7 +233,7 @@ def run_session(*, cfg: DiffusionConfig) -> dict[str, object] | None:
     return row_from_decodes(cfg=cfg, meta=meta, decoded=decoded, bout_lengths=lengths)
 
 
-def _truncate_bouts(*, lengths: list[int], n_kept: int) -> list[int]:
+def truncate_bouts(*, lengths: list[int], n_kept: int) -> list[int]:
     """Trim the per-bout bin counts to the first `n_kept` bins of the concatenated trace."""
     out: list[int] = []
     remaining = n_kept
