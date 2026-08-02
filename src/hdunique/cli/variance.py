@@ -37,7 +37,7 @@ def print_gated_table(*, df: pd.DataFrame, cfg: VarianceConfig) -> None:
         print(counts.to_string(), "\n")
 
 
-def print_components(*, df: pd.DataFrame, cfg: VarianceConfig, label: str) -> dict[str, float]:
+def print_components(*, df: pd.DataFrame, cfg: VarianceConfig, label: str) -> None:
     """Fit the LMM and print tau^2 / sigma^2 / ICC with bootstrap CIs and the ANOVA cross-check."""
     comp = variance.variance_components(result=variance.fit_lmm(df=df))
     boot = variance.bootstrap_components(df=df, n_boot=cfg.n_bootstrap, seed=cfg.seed)
@@ -62,7 +62,6 @@ def print_components(*, df: pd.DataFrame, cfg: VarianceConfig, label: str) -> di
         f"  {'var(log_D), unpartitioned':<28} {np.var(df['log_D'], ddof=1):.3f}"
         f"   (vs tau^2+sigma^2 = {comp['total']:.3f})\n"
     )
-    return comp
 
 
 def run(*, cfg: VarianceConfig) -> None:
@@ -99,6 +98,7 @@ def run(*, cfg: VarianceConfig) -> None:
 
 
 def main() -> None:
+    """Console-script entry point for `hd-variance`."""
     run(cfg=tyro.cli(VarianceConfig))
 
 

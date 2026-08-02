@@ -12,30 +12,18 @@ saturation is distributed unevenly across mice; a flat ICC means the decompositi
 artefact of the window choice.
 """
 
-import dataclasses
+import warnings
 
 import pandas as pd
 import tyro
 
 from hdunique import variance
-from hdunique.config import DANDI_MICE, FIT_WINDOWS_MS
+from hdunique.config import FIT_WINDOWS_MS, VarianceGateConfig
 from hdunique.env import results_dir
 from hdunique.sweep import load_all_mice
 
 
-@dataclasses.dataclass(frozen=True)
-class WindowSweepConfig:
-    """Gate and bootstrap settings, matched to the headline decomposition."""
-
-    min_adn_cells: int = 15
-    cell_set: str = "ADn"
-    mice: tuple[int, ...] = DANDI_MICE
-    n_bootstrap: int = 2000
-    seed: int = 0
-    estimator: str = "D"
-
-
-def summarise(*, df: pd.DataFrame, window_ms: int, cfg: "WindowSweepConfig") -> dict[str, object]:
+def summarise(*, df: pd.DataFrame, window_ms: int, cfg: VarianceGateConfig) -> dict[str, object]:
     """Fit the LMM for one window and return a single summary row."""
     comp = variance.variance_components(result=variance.fit_lmm(df=df))
     boot = variance.bootstrap_components(df=df, n_boot=cfg.n_bootstrap, seed=cfg.seed)
@@ -53,11 +41,9 @@ def summarise(*, df: pd.DataFrame, window_ms: int, cfg: "WindowSweepConfig") -> 
     }
 
 
-def run(*, cfg: WindowSweepConfig) -> None:
+def run(*, cfg: VarianceGateConfig) -> None:
     """Fit every window at the configured gate and write the CSV."""
-    import warnings
-
-    warnings.filterwarnings("ignore")
+    warnings.filterwarnings("ignore")  # boundary tau^2=0 bootstrap replicates warn by design
     raw = load_all_mice(mice=cfg.mice)
 
     rows = []
@@ -86,7 +72,8 @@ def run(*, cfg: WindowSweepConfig) -> None:
 
 
 def main() -> None:
-    run(cfg=tyro.cli(WindowSweepConfig))
+    """Console-script entry point for `hd-variance-by-window`."""
+    run(cfg=tyro.cli(VarianceGateConfig))
 
 
 if __name__ == "__main__":

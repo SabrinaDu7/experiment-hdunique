@@ -17,7 +17,7 @@ only, no spikes).
 Migrated entries are NOT trusted blindly: `verify_cache.py` re-runs whole sessions from the NWBs
 and checks the result matches. Run that before believing anything here.
 
-    uv run python throwaway/migrate_cache.py --source-dir <old repo>/outputs/results/pynapple_m3/cache
+    uv run python scripts/migrate_cache.py --source-dir <old repo>/outputs/results/pynapple_m3/cache
 """
 
 import dataclasses
@@ -28,7 +28,7 @@ import numpy as np
 import tyro
 
 from hdunique import loader, rates, sweep
-from hdunique.config import DiffusionConfig
+from hdunique.config import PAPER_REM_TARGETS, DiffusionConfig
 from hdunique.env import cache_dir
 
 
@@ -81,9 +81,7 @@ def migrate_one(*, path: Path, dry_run: bool) -> str:
     new_meta = {k: v for k, v in meta.items() if k != "n_iter_isomap_fit"}
     new_meta["n_refits"] = int(meta["n_iter_isomap_fit"])
     new_meta["rem_source"] = "dandi_states"
-    new_meta.pop("paper_target", None)
-    from hdunique.config import PAPER_REM_TARGETS
-
+    new_meta.pop("paper_target", None)  # re-added last, so the key order matches a fresh sweep's
     new_meta["paper_target"] = PAPER_REM_TARGETS.get(str(meta["session_id"]))
 
     if not dry_run:
@@ -109,6 +107,7 @@ def run(*, cfg: MigrateConfig) -> None:
 
 
 def main() -> None:
+    """Entry point: `uv run python scripts/migrate_cache.py`."""
     run(cfg=tyro.cli(MigrateConfig))
 
 

@@ -65,3 +65,21 @@ def decode_ring_angle(
     reference = np.zeros(len(embed))
     decoded, _ = mff.decode_from_passed_fit(embed, fit["tt"][:-1], fit["curve"][:-1], reference)
     return np.asarray(decoded, dtype=float)
+
+
+@jaxtyped(typechecker=beartype)
+def decode_refits(
+    *, embed: Float[np.ndarray, "time dim"], cfg: DiffusionConfig
+) -> Float[np.ndarray, "refit time"]:
+    """Decode the embedding `cfg.n_refits` times from independent ring fits, giving D mean +/- std.
+
+    `spud.fit_manifold` seeds nothing of its own — its k-means init draws from the global NumPy RNG
+    — so seeding that RNG once per refit is what makes the sweep reproducible.
+    """
+    traces = []
+    for refit in range(cfg.n_refits):
+        np.random.seed(cfg.seed + refit)
+        traces.append(
+            decode_ring_angle(embed=embed, cfg=cfg, rng=np.random.default_rng(cfg.seed + refit))
+        )
+    return np.array(traces)

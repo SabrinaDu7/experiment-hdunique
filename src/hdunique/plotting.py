@@ -4,8 +4,8 @@ All fit lines here are origin-forced, matching the estimator in `diffusion.py`, 
 is what is tabulated.
 """
 
+import dataclasses
 from pathlib import Path
-from typing import Any
 
 import matplotlib
 
@@ -13,6 +13,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from beartype import beartype
+from jaxtyping import Float, jaxtyped
 
 from hdunique.config import VarianceConfig
 
@@ -23,6 +25,23 @@ WELL_SAMPLED_CELLS = 20
 
 
 # --- diffusion curves ---------------------------------------------------------------------------
+@jaxtyped(typechecker=beartype)
+@dataclasses.dataclass(frozen=True)
+class DiffusionPanel:
+    """Everything one diffusion-curve panel draws: the measured curve, its fit and its labels.
+
+    The single-session figure and the per-mouse grid draw identical panels, so both callers build
+    this and neither owns the drawing.
+    """
+
+    title: str
+    lags_s: Float[np.ndarray, " lag"]
+    curve: Float[np.ndarray, " lag"]
+    d: float
+    r2: float
+    n_cells: int
+
+
 def _cell_gauge(*, ax: plt.Axes, n_cells: int, max_cells: int) -> None:
     """Small vertical gauge whose fill height is n_cells / the mouse's maximum, with the count
     printed below — a visual cue for whether a steep D coincides with an undersampled ring."""
@@ -44,44 +63,36 @@ def _cell_gauge(*, ax: plt.Axes, n_cells: int, max_cells: int) -> None:
 def _diffusion_panel(
     *,
     ax: plt.Axes,
-    lags_s: np.ndarray,
-    curve: np.ndarray,
-    d: float,
-    r2: float,
+    panel: DiffusionPanel,
     n_fit: int,
-    title: str,
-    n_cells: int,
     max_cells: int,
     fontsize: int = 8,
 ) -> None:
     """One diffusion-curve panel: the measured points, the origin-forced fit over the first `n_fit`
     lags (solid) extrapolated across the rest (dashed), D and r2 annotated, plus a cell gauge."""
+    lags_s, d = panel.lags_s, panel.d
     x = np.concatenate([[0.0], lags_s])
-    y = np.concatenate([[0.0], curve])
+    y = np.concatenate([[0.0], panel.curve])
     ax.scatter(x[1 + n_fit :], y[1 + n_fit :], color="0.6", s=28, zorder=3)
     ax.scatter(x[: 1 + n_fit], y[: 1 + n_fit], color="C0", s=28, zorder=4)
     ax.plot([0.0, lags_s[-1]], [0.0, d * lags_s[-1]], "C3--", lw=1.0)
     ax.plot([0.0, lags_s[n_fit - 1]], [0.0, d * lags_s[n_fit - 1]], "C3-", lw=2.5)
     ax.text(
-        0.04, 0.96, f"D = {d:.3f} rad²/s\nr² = {r2:.3f}", transform=ax.transAxes, va="top",
+        0.04, 0.96, f"D = {d:.3f} rad²/s\nr² = {panel.r2:.3f}", transform=ax.transAxes, va="top",
         fontsize=fontsize, bbox={"boxstyle": "round", "fc": "white", "ec": "0.7"},
     )
-    _cell_gauge(ax=ax, n_cells=n_cells, max_cells=max_cells)
-    ax.set_title(title, fontsize=9)
+    _cell_gauge(ax=ax, n_cells=panel.n_cells, max_cells=max_cells)
+    ax.set_title(panel.title, fontsize=9)
     ax.set_xlim(left=0.0)
     ax.set_ylim(bottom=0.0)
 
 
 def plot_session_diffusion(
-    *, panel: dict[str, Any], n_fit: int, window_ms: int, save_path: Path
+    *, panel: DiffusionPanel, n_fit: int, window_ms: int, save_path: Path
 ) -> None:
     """Single-session diffusion-curve figure."""
     fig, ax = plt.subplots(figsize=(6.5, 5), constrained_layout=True)
-    _diffusion_panel(
-        ax=ax, lags_s=panel["lags_s"], curve=panel["curve"], d=panel["D"], r2=panel["r2"],
-        n_fit=n_fit, title=panel["title"], n_cells=int(panel["n_cells"]),
-        max_cells=int(panel["n_cells"]), fontsize=10,
-    )
+    _diffusion_panel(ax=ax, panel=panel, n_fit=n_fit, max_cells=panel.n_cells, fontsize=10)
     ax.set_xlabel("lag τ (s)")
     ax.set_ylabel("⟨Δα²⟩ (rad²)")
     fig.suptitle(f"REM diffusion ({window_ms} ms fit window)", fontsize=12)
@@ -91,7 +102,7 @@ def plot_session_diffusion(
 
 
 def plot_mouse_diffusion_grid(
-    *, mouse: int, panels: list[dict[str, Any]], n_fit: int, window_ms: int, cell_set: str,
+    *, mouse: int, panels: list[DiffusionPanel], n_fit: int, window_ms: int, cell_set: str,
     save_path: Path,
 ) -> None:
     """One figure per mouse: a grid of diffusion-curve panels, one per session, on a shared
@@ -103,13 +114,10 @@ def plot_mouse_diffusion_grid(
         nrows, ncols, figsize=(4.2 * ncols, 3.4 * nrows), constrained_layout=True, squeeze=False
     )
     flat = axes.ravel()
-    ymax = max(float(np.max(p["curve"])) for p in panels) * 1.05
-    max_cells = max(int(p["n_cells"]) for p in panels)
+    ymax = max(float(np.max(p.curve)) for p in panels) * 1.05
+    max_cells = max(p.n_cells for p in panels)
     for ax, panel in zip(flat, panels):
-        _diffusion_panel(
-            ax=ax, lags_s=panel["lags_s"], curve=panel["curve"], d=panel["D"], r2=panel["r2"],
-            n_fit=n_fit, title=panel["title"], n_cells=int(panel["n_cells"]), max_cells=max_cells,
-        )
+        _diffusion_panel(ax=ax, panel=panel, n_fit=n_fit, max_cells=max_cells)
         ax.set_ylim(0.0, ymax)
     for ax in flat[n:]:
         ax.axis("off")
