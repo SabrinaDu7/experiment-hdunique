@@ -1,0 +1,59 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hdunique", "src/spud"]
+
+[project]
+name = "experiment-hdunique"
+version = "0.1.0"
+description = "REM head-direction diffusion constants and their variance decomposition (DANDI 000056)"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "numpy>=2.0",
+    "scipy>=1.13",
+    "pandas>=2.2",
+    "pyarrow>=24.0.0",
+    "matplotlib>=3.9",
+    "scikit-learn>=1.5",
+    "statsmodels>=0.14.6",
+    "pynapple>=0.11.3",
+    "tyro>=1.0.13",
+    "jaxtyping",
+    "beartype",
+    "jupytext>=1.19.1",
+    "ipykernel>=7.2.0",
+    "pypatree>=0.4.0",
+]
+
+[project.scripts]
+hd-diffusion = "hdunique.cli.diffusion:main"
+hd-diffusion-grid = "hdunique.cli.diffusion_grid:main"
+hd-variance = "hdunique.cli.variance:main"
+hd-variance-by-window = "hdunique.cli.variance_by_window:main"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+# The vendored upstream code is kept comparable with its source; do not reformat it.
+extend-exclude = ["src/spud"]
+
+[tool.basedpyright]
+pythonVersion = "3.13"
+typeCheckingMode = "standard"
+venvPath = "."
+venv = ".venv"
+exclude = [".venv", "src/spud"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.37.1",
+    "ipython>=9.9.0",
+    "pytest>=8.0.0",
+    "ruff>=0.14.12",
+]

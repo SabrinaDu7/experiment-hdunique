@@ -1,0 +1,7 @@
+.envrc
+.venv/
+__pycache__/
+*.pyc
+outputs/cache/
+outputs/results/*.png
+outputs/results/*.csv

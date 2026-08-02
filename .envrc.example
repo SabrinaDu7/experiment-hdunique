@@ -1,0 +1,9 @@
+# Copy to .envrc and tailor for your machine:  cp .envrc.example .envrc && direnv allow
+# (If you do not use direnv, `export` these yourself; the code also parses .envrc directly.)
+
+# Local download of DANDI dandiset 000056 (contains sub-Mouse12/, sub-Mouse17/, ...).
+#   uv run dandi download DANDI:000056
+export DANDI_DATA_ROOT="$HOME/Documents/experiments/datasets/000056"
+
+# Where parquets, the decode cache and figures are written.
+export OUTPUT_PATH="$PWD/outputs"
