@@ -75,6 +75,7 @@ docs/            Methods, results, reproduction instructions, and the port recor
 scripts/         Provenance tools that are not part of the pipeline: migrate_cache.py (how the
                  shipped decode cache got here) and verify_cache.py (the cold recompute that
                  validates it). Tracked, because the port record cites them as evidence.
+throwaway/       Scratch space for quick one-offs that need not live anywhere permanent (untracked)
 outputs/results/ Parquets and the decode cache (tracked), figures (not tracked)
 ```
 

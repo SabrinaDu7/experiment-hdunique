@@ -12,3 +12,7 @@ outputs/results/*
 !outputs/results/*.parquet
 !outputs/results/*.csv
 !outputs/results/cache/
+
+# Scratch space for quick one-offs; the .gitkeep is tracked, nothing else is.
+throwaway/*
+!throwaway/.gitkeep
