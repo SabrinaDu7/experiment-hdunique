@@ -32,6 +32,7 @@ class WindowSweepConfig:
     mice: tuple[int, ...] = DANDI_MICE
     n_bootstrap: int = 2000
     seed: int = 0
+    estimator: str = "D"
 
 
 def summarise(*, df: pd.DataFrame, window_ms: int, cfg: "WindowSweepConfig") -> dict[str, object]:
@@ -62,7 +63,8 @@ def run(*, cfg: WindowSweepConfig) -> None:
     rows = []
     for window_ms in FIT_WINDOWS_MS:
         gated = variance.gate_sessions(
-            df=raw, cell_set=cfg.cell_set, min_cells=cfg.min_adn_cells, window_ms=window_ms
+            df=raw, cell_set=cfg.cell_set, min_cells=cfg.min_adn_cells, window_ms=window_ms,
+            estimator=cfg.estimator,
         )
         rows.append(summarise(df=gated, window_ms=window_ms, cfg=cfg))
         print(f"  done {window_ms} ms")
@@ -75,7 +77,10 @@ def run(*, cfg: WindowSweepConfig) -> None:
         )
         print(out.to_string(index=False))
 
-    path = results_dir() / f"variance_by_window_{cfg.cell_set}_min{cfg.min_adn_cells}.csv"
+    path = (
+        results_dir()
+        / f"variance_by_window_{cfg.cell_set}_min{cfg.min_adn_cells}_{cfg.estimator}.csv"
+    )
     out.to_csv(path, index=False)
     print(f"\nsaved {path}")
 

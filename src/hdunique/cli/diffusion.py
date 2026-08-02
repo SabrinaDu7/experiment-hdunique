@@ -26,8 +26,9 @@ def _print_row(*, row: dict[str, object], elapsed: float) -> None:
     target = row.get("paper_target")
     print(
         f"  {row['session_id']} [{row['cell_set']}]: "
-        f"D={row['D']:.3f}±{row['D_std']:.3f}  nugget={row['nugget']:+.3f}  "
-        f"r²₅₀₀={row['r2_500']:.3f}  "
+        f"D={row['D']:.3f}±{row['D_std']:.3f}  "
+        f"D_bout={row['D_bout_aware']:.3f} "
+        f"[{row['D_bout_ci_lo']:.3f}, {row['D_bout_ci_hi']:.3f}]  nugget={row['nugget']:+.3f}  "
         f"({row['n_cells']} cells, {row['n_rem_bouts']} bouts) [{elapsed:.0f}s]"
         + (f"  paper≈{target}" if target else "")
     )

@@ -101,6 +101,65 @@ def free_intercept_fit(
     return float(slope), float(intercept), r2
 
 
+@jaxtyped(typechecker=beartype)
+def epoch_starts(*, bout_lengths: list[int], epoch_bins: int) -> Float[np.ndarray, " epoch"]:
+    """Start indices of non-overlapping `epoch_bins`-long epochs tiling each bout.
+
+    Epochs never straddle a bout boundary, so every within-epoch pair is a genuine measurement at
+    that lag. A bout shorter than one epoch contributes nothing.
+    """
+    starts: list[int] = []
+    offset = 0
+    for length in bout_lengths:
+        n_epochs = length // epoch_bins
+        starts.extend(offset + i * epoch_bins for i in range(n_epochs))
+        offset += length
+    return np.array(starts, dtype=float)
+
+
+@jaxtyped(typechecker=beartype)
+def bootstrap_ci(
+    *,
+    angles: Float[np.ndarray, " time"],
+    bout_lengths: list[int],
+    dt: float,
+    window_ms: int,
+    n_boot: int,
+    seed: int,
+) -> tuple[float, float]:
+    """The paper's bootstrap: resample `window_ms` epochs with replacement, as many as the data
+    holds, recompute D from each resampling, and return the 2.5 / 97.5 percentiles.
+
+    An epoch spans the whole fit window, so it carries one pair at every lag the fit uses (three
+    100 ms bins for the 200 ms window: two lag-1 pairs and one lag-2 pair). Resampling whole epochs
+    rather than individual pairs preserves the within-epoch correlation between lags, which is what
+    makes this a bootstrap over the *data* rather than over the summary statistic.
+
+    Returns (nan, nan) if `n_boot <= 0` or the session has too few complete epochs.
+    """
+    n_lags = round(window_ms / 1000.0 / dt)
+    epoch_bins = n_lags + 1
+    starts = epoch_starts(bout_lengths=bout_lengths, epoch_bins=epoch_bins).astype(int)
+    if n_boot <= 0 or len(starts) < 2:
+        return float("nan"), float("nan")
+
+    # Squared angular change at each lag, for every epoch: (n_epochs, n_lags).
+    per_epoch = np.empty((len(starts), n_lags))
+    for lag in range(1, n_lags + 1):
+        diffs = af.signed_angular_diff(angles[starts + lag], angles[starts])
+        per_epoch[:, lag - 1] = diffs**2
+
+    lags_s = np.arange(1, n_lags + 1, dtype=float) * dt
+    rng = np.random.default_rng(seed)
+    estimates = np.empty(n_boot)
+    for b in range(n_boot):
+        idx = rng.integers(0, len(starts), len(starts))
+        estimates[b], _ = slope_through_origin(
+            lags_s=lags_s, values=per_epoch[idx].mean(axis=0)
+        )
+    return float(np.percentile(estimates, 2.5)), float(np.percentile(estimates, 97.5))
+
+
 def window_column(*, stat: str, window_ms: int, headline_ms: int) -> str:
     """Parquet column name for a per-window statistic: the headline window is unsuffixed ("D"),
     wider windows are suffixed ("D_500"). Defined once so writer and readers agree."""

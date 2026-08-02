@@ -26,10 +26,10 @@ def print_gated_table(*, df: pd.DataFrame, cfg: VarianceConfig) -> None:
     """Print how many sessions per mouse survived the gate, and their D range."""
     print(
         f"=== gated sessions: cell_set={cfg.cell_set}, n_adn >= {cfg.min_adn_cells}, "
-        f"window={cfg.window_ms} ms ===\n"
+        f"window={cfg.window_ms} ms, estimator={cfg.estimator} ===\n"
         f"  {len(df)} session(s) across {df['mouse'].nunique()} mice"
     )
-    d_col = variance.d_column(window_ms=cfg.window_ms)
+    d_col = variance.d_column(window_ms=cfg.window_ms, estimator=cfg.estimator)
     counts = df.groupby("mouse").agg(
         n_sessions=(d_col, "size"), D_min=(d_col, "min"), D_max=(d_col, "max")
     )
@@ -70,14 +70,16 @@ def run(*, cfg: VarianceConfig) -> None:
     warnings.filterwarnings("ignore")  # boundary tau^2=0 bootstrap replicates warn by design
     raw = load_all_mice(mice=cfg.mice)
     gated = variance.gate_sessions(
-        df=raw, cell_set=cfg.cell_set, min_cells=cfg.min_adn_cells, window_ms=cfg.window_ms
+        df=raw, cell_set=cfg.cell_set, min_cells=cfg.min_adn_cells, window_ms=cfg.window_ms,
+        estimator=cfg.estimator,
     )
     print_gated_table(df=gated, cfg=cfg)
     print_components(df=gated, cfg=cfg, label=f"GATED (n_adn >= {cfg.min_adn_cells})")
 
     if cfg.sensitivity_ungated:
         ungated = variance.gate_sessions(
-            df=raw, cell_set=cfg.cell_set, min_cells=0, window_ms=cfg.window_ms
+            df=raw, cell_set=cfg.cell_set, min_cells=0, window_ms=cfg.window_ms,
+            estimator=cfg.estimator,
         )
         print_components(df=ungated, cfg=cfg, label="SENSITIVITY: ungated (all sessions)")
 
@@ -91,7 +93,8 @@ def run(*, cfg: VarianceConfig) -> None:
             effects=effects,
             cfg=cfg,
             save_path=results_dir()
-            / f"variance_by_mouse_{cfg.cell_set}_min{cfg.min_adn_cells}_{cfg.window_ms}ms.png",
+            / f"variance_by_mouse_{cfg.cell_set}_min{cfg.min_adn_cells}"
+            f"_{cfg.window_ms}ms_{cfg.estimator}.png",
         )
 
 

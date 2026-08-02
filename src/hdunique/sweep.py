@@ -111,8 +111,9 @@ def row_from_decodes(
 ) -> dict[str, object]:
     """Aggregate per-refit decoded angles into one result row.
 
-    Headline D and its per-window siblings are origin-forced slopes, averaged over refits. The
-    free-intercept `nugget` and the bout-aware D are diagnostics computed on the mean curve.
+    Two co-headline estimates, both origin-forced slopes averaged over refits: `D` pools every pair
+    in the concatenated trace, and `D_bout_aware` excludes pairs straddling a REM-bout boundary.
+    `nugget` (free-intercept) is a quality diagnostic, and `D_bout_ci_*` is the paper's epoch bootstrap.
     """
     per_window: dict[int, dict[str, list[float]]] = {
         ms: {"D": [], "r2": []} for ms in FIT_WINDOWS_MS
@@ -129,24 +130,51 @@ def row_from_decodes(
     mean_curve = np.mean(curves, axis=0)
     d_free, nugget, r2_free = dif.free_intercept_fit(curve=mean_curve, dt=cfg.dt)
 
-    # Diagnostic: the same estimator with boundary-crossing pairs excluded. Reported, not used.
+    # Co-headline: the same estimator with boundary-crossing pairs excluded. A pair spanning the
+    # gap between two REM bouts is not a measurement of diffusion at that lag, so this is the
+    # cleaner quantity; `D` is retained because it is what the source pipeline's tables report.
     bout_curves = [
         dif.diffusion_curve(angles=t, lags=DIFFUSION_LAGS, bout_lengths=bout_lengths)
         for t in decoded
     ]
-    d_bout, _ = dif.window_slope(
-        curve=np.mean(bout_curves, axis=0), dt=cfg.dt, window_ms=HEADLINE_WINDOW_MS
+    mean_bout_curve = np.mean(bout_curves, axis=0)
+
+    # The bootstrap resamples data, so it needs one decoded trace rather than the mean curve; use
+    # the refit whose D is the median, so the CI describes a representative ring, not an extreme.
+    # Note the paper's epoch bootstrap is *inherently* bout-aware -- an epoch cannot straddle a
+    # bout boundary -- so the interval it returns is a CI for `D_bout_aware`, not for `D`.
+    median_trace = np.asarray(
+        decoded[int(np.argsort(per_window[HEADLINE_WINDOW_MS]["D"])[len(decoded) // 2])],
+        dtype=float,
+    )
+    ci_lo, ci_hi = dif.bootstrap_ci(
+        angles=median_trace,
+        bout_lengths=bout_lengths,
+        dt=cfg.dt,
+        window_ms=HEADLINE_WINDOW_MS,
+        n_boot=cfg.n_bootstrap,
+        seed=cfg.seed,
     )
 
     row: dict[str, object] = {
         **meta,
         "curve_rad2": [float(v) for v in mean_curve],
+        "curve_bout_aware_rad2": [float(v) for v in mean_bout_curve],
         "D_freeint": d_free,
         "nugget": nugget,
         "r2_freeint": r2_free,
-        "D_bout_aware": d_bout,
+        "D_bout_ci_lo": ci_lo,
+        "D_bout_ci_hi": ci_hi,
+        "n_bootstrap": cfg.n_bootstrap,
     }
     for ms in FIT_WINDOWS_MS:
+        d_bout, r2_bout = dif.window_slope(curve=mean_bout_curve, dt=cfg.dt, window_ms=ms)
+        row[dif.window_column(stat="D_bout_aware", window_ms=ms, headline_ms=HEADLINE_WINDOW_MS)] = (
+            d_bout
+        )
+        row[
+            dif.window_column(stat="r2_bout_aware", window_ms=ms, headline_ms=HEADLINE_WINDOW_MS)
+        ] = r2_bout
         ds, r2s = np.array(per_window[ms]["D"]), np.array(per_window[ms]["r2"])
         row[dif.window_column(stat="D", window_ms=ms, headline_ms=HEADLINE_WINDOW_MS)] = float(
             ds.mean()

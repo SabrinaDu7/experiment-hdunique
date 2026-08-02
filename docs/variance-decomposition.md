@@ -5,6 +5,9 @@
 **Reproduce:** [`REPRODUCING.md`](./REPRODUCING.md) §2
 **Input:** the ADn rows of `diffusion_Mouse<m>.parquet` ([`rem-diffusion.md`](./rem-diffusion.md))
 
+Run on **both co-headline estimates** of *D* (`--estimator D` and `--estimator D_bout_aware`). The
+conclusion is the same either way; tables below give both.
+
 Each mouse contributes several sessions, each with one diffusion constant *D*. How much of the
 spread in *D* is **between mice**, and how much is **between sessions within a mouse**?
 
@@ -59,16 +62,31 @@ the per-mouse variances are in fact wildly heterogeneous, so σ² describes no i
 
 ## Results (ADn, `n_bootstrap=2000`, seed 0)
 
+**Estimator `D`** (pairs pooled across the whole concatenated trace):
+
 | Gate | sessions | mice | τ² | σ² | **ICC** | ICC 95% CI | ANOVA ICC |
 |---|---|---|---|---|---|---|---|
 | **≥15 ADn** (default) | 23 | 6 | 0.290 | 0.204 | **0.587** | **[0.003, 0.857]** | 0.579 |
 | ≥20 ADn | 17 | 4 | 0.193 | 0.216 | **0.471** | **[0.000, 0.825]** | 0.505 |
 | ungated (sensitivity) | 32 | 6 | 0.302 | 0.305 | **0.498** | **[0.000, 0.771]** | 0.488 |
 
+**Estimator `D_bout_aware`** (cross-bout pairs excluded):
+
+| Gate | sessions | mice | τ² | σ² | **ICC** | ICC 95% CI | ANOVA ICC |
+|---|---|---|---|---|---|---|---|
+| **≥15 ADn** (default) | 23 | 6 | 0.313 | 0.224 | **0.582** | **[0.001, 0.855]** | 0.574 |
+| ≥20 ADn | 17 | 4 | 0.211 | 0.241 | **0.467** | **[0.000, 0.822]** | 0.499 |
+| ungated (sensitivity) | 32 | 6 | 0.322 | 0.327 | **0.496** | **[0.000, 0.770]** | 0.486 |
+
+**The ICC is insensitive to which estimate is decomposed** — 0.587 vs 0.582, 0.471 vs 0.467,
+0.498 vs 0.496. Both components rise by ~8 % under `D_bout_aware` (the cross-bout bias is not
+perfectly uniform, so removing it slightly widens the spread of log *D*), but their **ratio is
+unchanged**. The cross-bout issue in *D* therefore does not touch the variance conclusion at all.
+
 **The ANOVA cross-check agrees to within 0.04 at every gate**, so the decomposition itself is sound
 — the uncertainty is sampling, not method.
 
-Figure: `variance_by_mouse_ADn_min15_200ms.png`. Panel A shows every session as a dot with the mouse
+Figure: `variance_by_mouse_ADn_min15_200ms_D.png` (and `..._D_bout_aware.png`). Panel A shows every session as a dot with the mouse
 mean as a bar (spread of the bars is between-mouse; spread within a column is within-mouse; open
 marks flag < 20 cells). Panel B shows each mouse's shrunken estimate ± 1.96 conditional SD —
 intervals straddling the grand-mean line is the visual form of "the ICC CI includes zero". *No
@@ -114,9 +132,18 @@ diagnostics** from [`rem-diffusion.md`](./rem-diffusion.md), *not* alternative e
 | 400 ms | 0.218 | 0.148 | 0.595 | [0.002, 0.860] | 0.587 |
 | 500 ms | 0.190 | 0.130 | 0.594 | [0.002, 0.859] | 0.585 |
 
+Same sweep on `D_bout_aware` — equally flat, at the same level:
+
+| Window | τ² | σ² | **ICC** | ICC 95% CI | ANOVA ICC |
+|---|---|---|---|---|---|
+| **200 ms** | 0.313 | 0.224 | **0.582** | [0.001, 0.855] | 0.574 |
+| 300 ms | 0.273 | 0.188 | 0.592 | [0.002, 0.858] | 0.582 |
+| 400 ms | 0.237 | 0.162 | 0.594 | [0.002, 0.859] | 0.585 |
+| 500 ms | 0.208 | 0.141 | 0.595 | [0.002, 0.860] | 0.585 |
+
 Both components shrink together as the window widens — *D* saturates, so its spread compresses — but
 their **ratio is flat**. The variance conclusion is robust to the window choice; the window only
-rescales the absolute variances. (`variance_by_window_ADn_min15.csv`.)
+rescales the absolute variances. (`variance_by_window_ADn_min15_D.csv`, `variance_by_window_ADn_min15_D_bout_aware.csv`.)
 
 ---
 
@@ -151,8 +178,8 @@ rescales the absolute variances. (`variance_by_window_ADn_min15.csv`.)
   distribution and produce components that are not comparable to an exogenous gate's. Resolving this
   properly needs a quality measure independent of the diffusion curve.
 
-- **τ² + σ² exceeds var(log D) by ~10–16 %** at every gate (0.494 vs 0.426 at ≥15). Expected, not a
-  bug: REML's precision-weighted grand mean means the components do not decompose the raw marginal
+- **τ² + σ² exceeds var(log D)** at every gate — by 16.0 % at ≥15 (0.494 vs 0.426), 10.8 % ungated
+  (0.607 vs 0.548) and 6.2 % at ≥20 (0.409 vs 0.385). Expected, not a bug: REML's precision-weighted grand mean means the components do not decompose the raw marginal
   variance additively under an unbalanced design. It is an order-of-magnitude sanity check only; the
   ANOVA ICC is the real validation.
 
@@ -183,11 +210,6 @@ complete session set it falls from 0.627 to 0.498, much closer to the gated valu
 
 ## Open
 
-- The **cross-bout contamination** in *D* (see [`rem-diffusion.md`](./rem-diffusion.md)) biases every
-  session's *D* upward by 0.1–7.8 %. Because the ICC is a ratio of variances of *log D*, a
-  near-uniform multiplicative shift largely cancels — but the shift is not perfectly uniform (it is
-  largest for slow sessions), so the decomposition should be re-run if `D_bout_aware` is promoted to
-  the headline.
 - Whether to require a minimum **session count per mouse** (e.g. ≥ 3) instead of, or alongside, the
   cell gate. That would drop Mouse20 and Mouse24 for the right reason — they cannot inform
   within-mouse variance — while keeping Mouse25-140130 at the ≥15 cell gate.

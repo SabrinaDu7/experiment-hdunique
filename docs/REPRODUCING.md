@@ -84,6 +84,9 @@ uv run hd-diffusion --scope session --mouse 28 --session 140313 --make-plot
 uv run hd-diffusion --scope mouse --mouse 25
 ```
 
+> These are only quick **if the shipped cache covers them** (it covers all 65 published runs). A
+> session that is not cached costs the full 8–15 minutes.
+
 The diagnostic cell sets (used only to justify the ADn-only choice, see
 [`rem-diffusion.md`](./rem-diffusion.md) §"Why ADn only"):
 
@@ -115,12 +118,13 @@ Requires the parquets from step 1.
 uv run hd-variance                                        # headline: >=15 ADn cells
 uv run hd-variance --min-adn-cells 20                     # stricter gate
 uv run hd-variance --min-adn-cells 0                      # ungated sensitivity
+uv run hd-variance --estimator D_bout_aware               # the bout-aware estimate of D
 ```
 
 Prints τ², σ², the ICC with bootstrap CIs and the ANOVA cross-check, and writes
-`variance_by_mouse_ADn_min<N>_<window>ms.png`.
+`variance_by_mouse_ADn_min<N>_<window>ms_<estimator>.png`.
 
-Runtime: a few minutes (2000 parametric-bootstrap LMM refits per fit).
+Runtime: ~40 s per gate (2000 parametric-bootstrap LMM refits each).
 
 > `ConvergenceWarning`s during the bootstrap are expected and are suppressed. Replicates landing on
 > the τ² = 0 boundary are exactly what produces the CI's lower edge near zero; the primary fits
@@ -130,9 +134,11 @@ Runtime: a few minutes (2000 parametric-bootstrap LMM refits per fit).
 
 ```bash
 uv run hd-variance-by-window
+uv run hd-variance-by-window --estimator D_bout_aware
 ```
 
-Writes `variance_by_window_ADn_min15.csv` — one row per fit window (200/300/400/500 ms).
+Writes `variance_by_window_ADn_min15_<estimator>.csv` — one row per fit window
+(200/300/400/500 ms).
 
 ---
 
@@ -169,18 +175,22 @@ k-means initialisation draws from the **global** NumPy RNG — so `sweep.run_ses
 global RNG once per refit (`np.random.seed(cfg.seed + refit)`). Remove that and D swings between
 identical runs.
 
-Verified: re-running a session cold reproduces its cached decoded angles to float32 storage
-precision, and the resulting D to 6 decimal places. See
+Verified: re-running Mouse28-140313 cold from the NWB files reproduces its cached decoded angles
+**bit-identically** (max |Δ| = 0), and Mouse28-140317 to float32 storage precision. See
 [`2026-08-02-port-rem-diffusion-and-variance.md`](./2026-08-02-port-rem-diffusion-and-variance.md)
 §"Validation".
 
 ## 6. Provenance of the shipped cache
 
-The `outputs/results/cache/` entries distributed with this repo were imported from the predecessor
-repository, where the same pipeline and the same settings produced them, rather than recomputed
-from scratch during the port (`throwaway/migrate_cache.py`). They were then **validated** by
-recomputing whole sessions cold from the NWBs and diffing
-(`throwaway/verify_cache.py`) — see the port doc's validation section for the measured agreement.
+The `outputs/results/cache/` entries are **tracked in git and ship with the repo** (~22 MB), so a
+fresh clone can run `--recompute-only`, `hd-variance` and the figure commands immediately, without
+first spending hours on the sweep.
+
+They were imported from the predecessor repository, where the same pipeline and the same settings
+produced them, rather than recomputed from scratch during the port
+(`throwaway/migrate_cache.py`). They were then **validated** by recomputing whole sessions cold from
+the NWBs and diffing (`throwaway/verify_cache.py`): Mouse28-140313 ADn reproduced
+**bit-identically**. See the port doc's validation section.
 
 If you would rather not trust the import, delete the cache and run step 1 from scratch; the
 pipeline does not depend on it.

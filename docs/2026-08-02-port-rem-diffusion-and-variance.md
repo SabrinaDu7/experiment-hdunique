@@ -87,15 +87,33 @@ setting**, and `uv run hd-diffusion --scope all` with no flags is the command of
 
 See P2 — this is both a decision and the one change that moves the numbers.
 
-### D5 — The bootstrap is dropped rather than ported
+### D6 — Both diffusion estimates are co-headline
 
-The paper resamples 200 ms epochs with replacement, 1000×. The source implementation resampled
-per-bin squared angular changes at lags 1 and 2, on a single refit's decoded angle — a different
-statistic wearing the same name — and it was switched off in the published sweep anyway, leaving
-`D_boot_lo`/`D_boot_hi` NaN in every row. **Decision: do not port a mislabelled statistic.** What
-is reported is `D_std`, the spread over refits, documented in the config and the results doc as a
-ring-stability diagnostic that shrinks by construction as `n_restarts` rises — explicitly *not* a
-confidence interval. Implementing the paper's epoch bootstrap is left as future work.
+Rather than designate one estimator, the sweep reports **`D`** (pairs pooled across the concatenated
+trace, as the source pipeline did) and **`D_bout_aware`** (cross-bout pairs excluded) side by side,
+with the variance decomposition runnable on either via `--estimator`. See Q1, now resolved.
+
+### D5 — The bootstrap is reimplemented to the paper's specification
+
+The source implementation resampled per-bin squared angular changes at lags 1 and 2, on a single
+refit's decoded angle — a different statistic wearing the paper's name — and it was switched off in
+the published sweep anyway, leaving `D_boot_lo`/`D_boot_hi` NaN in every row. Rather than port a
+mislabelled statistic, **the paper's procedure was written from scratch** (`diffusion.bootstrap_ci`):
+resample whole 200 ms epochs with replacement, as many as the data holds, recompute *D* from each
+resampling, take the 2.5/97.5 percentiles, 1000×.
+
+Resampling whole epochs rather than individual pairs is the point — it preserves the within-epoch
+correlation between lags, making it a bootstrap over the *data* rather than over the summary
+statistic. Validated on a synthetic random walk with a known slope of 1.600: the estimator recovers
+1.5951 and the interval [1.5727, 1.6284] covers the truth.
+
+**An epoch cannot straddle a bout boundary**, so the interval this returns is a CI for
+`D_bout_aware`, not for `D` — an independent argument that the bout-aware quantity is what the
+paper's own method targets. Columns are named `D_bout_ci_lo` / `D_bout_ci_hi` accordingly.
+
+`D_std` is still reported alongside, and the two measure different things: the CI covers sampling
+variability of *one* ring; `D_std` covers ring-to-ring variability. In the three sessions with the
+largest `D_std` the CI excludes the multi-refit mean, which is informative rather than contradictory.
 
 ---
 
@@ -194,11 +212,13 @@ Three independent checks, in increasing strength.
 ### 4.1 Bout structure agrees (all 64 imported runs)
 
 As described in P1: independently recomputed bout lengths sum to exactly the stored embedding
-length in every entry. Confirms binning, epoch reading and the `n_samples` truncation all match.
+length in every entry (64 in the bulk import, plus Mouse28-140313 ADn imported separately = 65).
+Confirms binning, epoch reading and the `n_samples` truncation all match.
 
 ### 4.2 The free-intercept diagnostics are bit-comparable
 
-`nugget` recomputed here matches the source's parquet to **7 × 10⁻¹⁶** across all 64 runs. Since the
+`nugget` recomputed here matches the source's parquet to **7 × 10⁻¹⁶** across all 64 bulk-imported
+runs. Since the
 nugget is a least-squares fit to the diffusion curve, this confirms the diffusion curve itself —
 and therefore the decoded angles and everything upstream — is being read identically.
 
@@ -267,7 +287,7 @@ falls from 0.627 to 0.498, much closer to the gated values, exactly as that argu
 
 ## 5. Open questions for the user
 
-### Q1 — Cross-bout pairs inflate D, systematically and always upward ⚠️
+### Q1 — Cross-bout pairs inflate D ✅ RESOLVED: both estimates are co-headline
 
 `spud.get_diffusion_curve` is applied to the **concatenated** decoded angle, so at lag *k* it forms
 *k*·(*B*−1) pairs that straddle bout boundaries, where *B* is the bout count. Those pairs are
@@ -298,23 +318,28 @@ low-cell sessions remain inflated, and the ICC is a ratio of variances of log D 
 multiplicative shift largely cancels. But the diffusion constants are biased upward by a knowable,
 one-directional amount, and the affected sessions are not a random subset.
 
-**My recommendation: make `D_bout_aware` the headline.** It is unambiguously the more correct
-quantity — a pair spanning a gap in the recording is not a measurement of diffusion at that lag —
-and the cache makes the switch a seconds-long recompute. It would, however, put this repo's numbers
-one further step away from the source repo's published tables, which is why I have not done it
-unilaterally.
+**Resolved: both are reported as co-headline estimates** (D6), with `D_bout_aware` carrying the
+confidence interval and flagged as the one to trust where they disagree materially. The variance
+decomposition runs on either and **the ICC is insensitive to the choice** (0.587 vs 0.582 at the
+≥15 gate), so nothing downstream hinges on it.
 
-### Q2 — Should the paper's epoch bootstrap be implemented?
+Corrected figures after the full 32-session table was complete: the range is **−12.9 % to −0.1 %**
+with **7** sessions beyond 5 %, not the −7.8 % / 6 sessions first reported — that earlier figure was
+computed while Mouse28-140313 (the worst affected, −12.9 %) was still being recomputed and was
+missing from the table.
 
-Per D5, there is currently no confidence interval on D, only `D_std`. The paper's ±0.04-style error
-bars need the 200 ms epoch bootstrap. Worth doing if D values are to be compared statistically
-rather than descriptively.
+### Q2 — The paper's epoch bootstrap ✅ RESOLVED: implemented
+
+See D5.
 
 ---
 
 ## 6. Provenance of the shipped cache
 
-The decode cache was **imported** from the predecessor repo (`throwaway/migrate_cache.py`) rather
+The decode cache **is** shipped (tracked in git, ~22 MB), so `--recompute-only` and the figure
+commands work on a fresh clone without the multi-hour sweep.
+
+It was **imported** from the predecessor repo (`throwaway/migrate_cache.py`) rather
 than recomputed during the port, because the decode is the expensive step (~50 ring fits per
 session, 8–15 minutes each) and the change this port makes to the estimator is strictly downstream
 of it. The import is justified only by §4, which is why §4.3 recomputes cold from the raw data

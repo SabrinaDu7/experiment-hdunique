@@ -75,6 +75,10 @@ class DiffusionConfig:
     #: for scoring (REM has no ground-truth HD), so 1.0 simply gives a better-constrained ring.
     fit_frac: float = 1.0
 
+    #: Bootstrap replicates for the CI on D (the paper's: resample 200 ms epochs with replacement,
+    #: 1000x). Set to 0 to skip. Unlike `D_std` this IS a confidence interval.
+    n_bootstrap: int = 1000
+
     # --- reproducibility ---
     seed: int = 0
 
@@ -116,6 +120,10 @@ class VarianceConfig:
     #: Which fit window's D to decompose. The wider windows are a saturation diagnostic; the ICC
     #: is invariant to this choice, which is itself a reported result.
     window_ms: int = HEADLINE_WINDOW_MS
+
+    #: Which of the two co-headline estimates to decompose: "D" pools every pair in the
+    #: concatenated trace, "D_bout_aware" excludes pairs straddling a REM-bout boundary.
+    estimator: Literal["D", "D_bout_aware"] = "D"
 
     #: Parametric-bootstrap replicates -> percentile CIs. Variance components are bounded at zero
     #: with skewed sampling distributions, so Wald intervals would mislead here.

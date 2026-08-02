@@ -36,9 +36,9 @@ from hdunique.config import HEADLINE_WINDOW_MS
 from hdunique.diffusion import window_column
 
 
-def d_column(*, window_ms: int) -> str:
-    """Parquet column holding D for a fit window."""
-    return window_column(stat="D", window_ms=window_ms, headline_ms=HEADLINE_WINDOW_MS)
+def d_column(*, window_ms: int, estimator: str = "D") -> str:
+    """Parquet column holding the chosen estimate of D for a fit window."""
+    return window_column(stat=estimator, window_ms=window_ms, headline_ms=HEADLINE_WINDOW_MS)
 
 
 def gate_sessions(
@@ -47,6 +47,7 @@ def gate_sessions(
     cell_set: str,
     min_cells: int,
     window_ms: int = HEADLINE_WINDOW_MS,
+    estimator: str = "D",
     count_col: str = "n_adn",
 ) -> pd.DataFrame:
     """Keep one cell set's well-sampled sessions and add `log_D`.
@@ -55,7 +56,7 @@ def gate_sessions(
     panel must pass "n_cells" since PoS-only sessions have n_adn = 0.
     """
     out = df[(df["cell_set"] == cell_set) & (df[count_col] >= min_cells)].copy()
-    out["log_D"] = np.log(out[d_column(window_ms=window_ms)])
+    out["log_D"] = np.log(out[d_column(window_ms=window_ms, estimator=estimator)])
     return out.reset_index(drop=True)
 
 

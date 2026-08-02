@@ -3,10 +3,12 @@
 __pycache__/
 *.pyc
 
-# Results: the parquets are the artefact and are tracked. The decode cache is ~22 MB of
-# regenerable binary, and figures are regenerable from the parquets/cache, so neither is.
+# Results. The parquets ARE the artefact; the decode cache is shipped too (~22 MB) so that
+# --recompute-only and the figure commands work on a fresh clone without the multi-hour sweep.
+# Figures are regenerable from those in seconds, so they are not tracked.
 outputs/*
 !outputs/results/
 outputs/results/*
 !outputs/results/*.parquet
-!outputs/results/variance_by_window*.csv
+!outputs/results/*.csv
+!outputs/results/cache/
