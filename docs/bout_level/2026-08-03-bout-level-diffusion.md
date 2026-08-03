@@ -126,19 +126,87 @@ not survive the full dataset — noted here because it was the initial impressio
 retires a specific artefact worry from the long-timescale work — that long bouts dominate long lags,
 so a duration–*D* correlation could manufacture the falling *D*(τ). There is no such correlation.
 
+## 4b. Is bout-level variance biology or decode quality? ⚠️
+
+Three per-bout quality measures were tested. `nugget` is **mechanically linked** to *D* (both come
+from the same diffusion curve), so it is reported but cannot settle anything. The other two are
+independent of the angular dynamics: **ring radial scatter** and **fraction of off-ring points**
+are computed from the cached embedding, and **refit spread** (`D_std`) from the disagreement between
+ring fits.
+
+| measure | independent of D? | ρ with log D, within session |
+|---|---|---|
+| `nugget` | **no** — same curve | +0.459 |
+| ring radial scatter | yes | +0.347 |
+| fraction of off-ring points | yes | **+0.474** |
+| refit spread (`D_std`) | yes | +0.403 |
+
+The independent off-ring measure is *as* predictive as the tautological one, so this is a real
+effect. Together the independent measures explain **33 % of within-session variance in log D**.
+
+**Correcting for them changes the decomposition drastically:**
+
+| | between-mouse | between-session | between-bout | ICC(mouse) |
+|---|---|---|---|---|
+| raw log *D* | 0.325 (34.3 %) | 0.289 (30.6 %) | 0.332 (35.1 %) | 0.343 |
+| **quality-corrected** | **0.007 (2.2 %)** | 0.060 (18.6 %) | 0.255 (79.1 %) | **0.022** |
+
+Between-mouse variance essentially vanishes. **Almost all of the apparent between-mouse difference
+in *D* is explained by how well each animal's ring was sampled.**
+
+**But the correction is not clean, and must not be read as "mice do not differ".** Decode quality is
+itself a property of the animal's implant:
+
+| mouse | median cells | ring scatter | off-ring | refit spread | median *D* |
+|---|---|---|---|---|---|
+| Mouse12 | 40 | 0.288 | 0.063 | 0.076 | 0.78 |
+| Mouse28 | 23 | 0.263 | 0.059 | 0.008 | 0.45 |
+| Mouse25 | 18 | 0.335 | 0.100 | 0.016 | 0.65 |
+| Mouse24 | 16 | 0.483 | 0.209 | 0.648 | 2.44 |
+| Mouse17 | 25 | 0.359 | 0.120 | 0.635 | 2.09 |
+| Mouse20 | 9 | 0.444 | 0.087 | 0.746 | 3.46 |
+
+ρ(cell count, ring scatter) = −0.487 and ρ(cell count, *D*) = −0.437 across bouts. Cell count is
+fixed by the implant, so regressing quality out removes real between-mouse variance along with the
+artefact. The defensible conclusion is **not** that mouse identity is irrelevant, but that in this
+dataset **between-mouse differences in *D* are not separable from between-mouse differences in
+recording quality**. That is a sharper version of the same "cannot resolve" verdict the two-level
+model reached — now with a named mechanism rather than just wide error bars.
+
+## 4c. Exit state, the unconfounded tests
+
+**Paired within-session** (13 sessions with ≥3 bouts of each type): median within-session difference
+in log *D* (Non-REM-exit minus wake-exit) = **+0.121**, higher in 9 of 13 sessions,
+**Wilcoxon p = 0.45**. Consistent with the session-fixed-effects result; no effect.
+
+**Three sessions inspected directly** (`bout_exit_strip.png`), chosen to span the quality range:
+
+| Session | cells | → Awake | → Non-REM | ratio | MWU p |
+|---|---|---|---|---|---|
+| Mouse12-120808 | 39 | n=10, median 1.26 | n=4, median 1.31 | 1.04× | 0.84 |
+| Mouse17-130129 | 25 | n=12, median 1.40 | n=7, median 1.65 | 1.18× | 0.77 |
+| Mouse20-130515 | 6 | n=10, median 4.88 | n=8, median 4.88 | 1.00× | 0.83 |
+
+The two distributions sit on top of each other in all three. What the panels *do* show is the thing
+that actually matters: the **within-group** spread dwarfs any between-group difference, and the
+three sessions occupy completely different *D* ranges (1.3, 1.5, 4.9) that track cell count
+(39, 25, 6) rather than anything about bout context.
+
 ## 5. What this does and does not settle
 
 **Settles:**
 - Session-level *D* is an average over a broad within-session distribution, not a session property.
 - Bout-level variance is a third of the total and was previously mis-attributed.
 - The sub-diffusion at long lags has a mechanism consistent with rate heterogeneity.
-- Bout context (exit state, timing, duration) does **not** explain within-session spread.
+- Bout context (exit state, timing, duration) does **not** explain within-session spread — tested
+  raw, session-demeaned, session-FE, and paired within-session.
+- A third of bout-level variance is decode quality, and *between-mouse* variance is almost entirely
+  attributable to it (§4b) — though quality is confounded with the implant, so this bounds rather
+  than refutes a mouse effect.
 
 **Does not settle:**
-- **What the bout-to-bout variation actually is.** It could be real physiological variation in
-  circuit state, or variation in decode quality across bouts (a bout where the ring is poorly
-  sampled would show inflated *D*). The per-bout `nugget` and `D_std` are recorded and could
-  separate these; not yet done.
+- **What the *remaining* bout-to-bout variation is.** Decode quality accounts for 33 % of it (§4b);
+  the other two thirds could be real physiological variation or quality these three proxies miss.
 - **Whether between-mouse variance exceeds within-mouse variance.** Still 6 mice. The bout level
   adds hundreds of observations but no degrees of freedom at the mouse level, so the CI on the
   mouse component is no narrower than before. This analysis sharpens *what σ² means*; it does not

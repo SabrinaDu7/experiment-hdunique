@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 import tyro
 
-from hdunique import bouts, loader
+from hdunique import bouts, loader, plotting
 from hdunique.config import DIFFUSION_LAGS, HEADLINE_WINDOW_MS
 from hdunique.env import results_dir
 from hdunique.sweep import iter_cache
@@ -41,6 +41,8 @@ class BoutConfig:
     windows_ms: tuple[int, ...] = (200, 500)
     #: Bouts shorter than this contribute too few pairs to fit; they are kept but flagged.
     min_duration_s: float = 10.0
+    #: Sessions to draw an exit-state strip figure for, as `<mouse>-<session>`. Empty draws none.
+    plot_sessions: tuple[str, ...] = ()
 
 
 def session_rows(*, cfg: BoutConfig, entry: object) -> list[dict[str, object]]:
@@ -123,6 +125,18 @@ def run(*, cfg: BoutConfig) -> None:
     if not by_mouse:
         print("No matching cached sessions.")
         return
+
+    if cfg.plot_sessions:
+        every = pd.DataFrame([r for rows in by_mouse.values() for r in rows])
+        wanted_ids = [f"Mouse{m}-{s}" for m, s in (tuple(int(p) for p in x.split("-"))
+                                                   for x in cfg.plot_sessions)]
+        frames = {sid: every[every.session_id == sid] for sid in wanted_ids}
+        frames = {k: v for k, v in frames.items() if len(v)}
+        if frames:
+            results_dir().mkdir(parents=True, exist_ok=True)
+            plotting.plot_bout_exit_strip(
+                frames=frames, save_path=results_dir() / "bout_exit_strip.png"
+            )
 
     results_dir().mkdir(parents=True, exist_ok=True)
     for mouse, rows in sorted(by_mouse.items()):

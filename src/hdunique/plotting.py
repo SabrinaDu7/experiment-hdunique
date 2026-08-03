@@ -361,3 +361,52 @@ def plot_cellset_strip(
     fig.savefig(save_path, dpi=150)
     plt.close(fig)
     print(f"  saved {save_path}")
+
+
+def plot_bout_exit_strip(
+    *, frames: dict[str, pd.DataFrame], save_path: Path
+) -> None:
+    """Per-bout D split by what the bout exited to, one panel per session.
+
+    Deliberately a strip of every bout rather than a summary: with 3-19 bouts per group a box or
+    violin would invent a density. The bar is the group median. Because the comparison that matters
+    is *within* a session, each panel is self-contained and the panels share a log-D axis only so
+    that session-to-session scale differences stay visible.
+    """
+    fig, axes = plt.subplots(
+        1, len(frames), figsize=(3.1 * len(frames) + 1.0, 4.4), constrained_layout=True,
+        sharey=True, squeeze=False,
+    )
+    order = ["Awake", "Non-REM"]
+    colors = {"Awake": "C1", "Non-REM": "C0"}
+    rng = np.random.default_rng(0)
+
+    for ax, (session_id, frame) in zip(axes[0], frames.items(), strict=True):
+        for i, state in enumerate(order):
+            sub = frame[frame["next_state"] == state]
+            if not len(sub):
+                continue
+            x = i + rng.uniform(-0.12, 0.12, len(sub))
+            ax.scatter(x, np.log(sub["D_200"]), s=44, color=colors[state], alpha=0.85, zorder=3)
+            ax.hlines(np.log(sub["D_200"]).median(), i - 0.3, i + 0.3, color=colors[state],
+                      lw=3, zorder=4)
+        ax.set_xticks(range(len(order)), [f"exit →\n{s}" for s in order])
+        ax.set_xlim(-0.6, len(order) - 0.4)
+        n_cells = int(frame["n_cells"].iloc[0])
+        counts = frame["next_state"].value_counts()
+        ax.set_title(
+            f"{session_id}  ({n_cells} cells)\n"
+            f"n = {counts.get('Awake', 0)} vs {counts.get('Non-REM', 0)} bouts",
+            fontsize=9,
+        )
+
+    axes[0][0].set_ylabel("D (rad²/s, log scale)")
+    lo, hi = axes[0][0].get_ylim()
+    ticks = D_TICKS[(np.log(D_TICKS) > lo) & (np.log(D_TICKS) < hi)]
+    axes[0][0].set_yticks(np.log(ticks), [f"{t:g}" for t in ticks])
+    fig.suptitle(
+        "Per-bout REM diffusion, split by the state each bout exited to", fontsize=12
+    )
+    fig.savefig(save_path, dpi=150)
+    plt.close(fig)
+    print(f"  saved {save_path}")
