@@ -30,6 +30,7 @@ dependencies = [
 
 [project.scripts]
 hd-diffusion = "hdunique.cli.diffusion:main"
+hd-bouts = "hdunique.cli.bout_diffusion:main"
 hd-cellset-strip = "hdunique.cli.cellset_strip:main"
 hd-diffusion-grid = "hdunique.cli.diffusion_grid:main"
 hd-timescale = "hdunique.cli.timescale:main"
