@@ -3,7 +3,7 @@
 Every default here is the setting that produced the published results, so a bare
 `uv run hd-diffusion --scope all` reproduces the sweep with no flags. (In the source repo the
 sweep settings differed from the config defaults, which made the tables unreproducible from the
-code alone — see docs/2026-08-02-port-rem-diffusion-and-variance.md, problem P4.)
+code alone — see docs/porting/2026-08-02-port-rem-diffusion-and-variance.md, problem P4.)
 """
 
 import dataclasses
@@ -11,7 +11,7 @@ from typing import Literal
 
 #: Paper-reported REM diffusion constants (rad^2/s), for reference in printouts and plots.
 #: NOTE: the paper used CRCNS REM scoring; this repo uses DANDI's. The two disagree substantially
-#: on Mouse28-140313, so these are context, not a target. See docs/rem-diffusion.md.
+#: on Mouse28-140313, so these are context, not a target. See docs/porting/results-rem-diffusion.md.
 PAPER_REM_TARGETS: dict[str, float] = {"Mouse28-140313": 1.1, "Mouse25-140130": 0.52}
 
 #: Mice in DANDI 000056 that have at least one usable session.
@@ -56,7 +56,7 @@ class DiffusionConfig:
     # --- cells ---
     #: Brain areas to take, by DANDI per-unit `location`. ADn carries the ring; PoS alone is
     #: near-noise and adding it to ADn only inflates variance, so ADn is the analysis set.
-    #: PoS / ADn+PoS remain reachable for the diagnostic documented in docs/rem-diffusion.md.
+    #: PoS / ADn+PoS remain reachable for the diagnostic documented in docs/porting/results-rem-diffusion.md.
     cell_areas: tuple[str, ...] = ("ADn",)
 
     # --- rates (paper: ~100 ms bins, Gaussian kernel of s.d. 100 ms) ---

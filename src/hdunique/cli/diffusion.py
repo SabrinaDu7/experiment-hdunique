@@ -6,7 +6,7 @@
     uv run hd-diffusion --recompute-only                         # rebuild parquets from cache
 
 Every default is the setting that produced the published tables, so `--scope all` alone is the
-command of record. See docs/REPRODUCING.md.
+command of record. See docs/porting/REPRODUCING.md.
 """
 
 import dataclasses

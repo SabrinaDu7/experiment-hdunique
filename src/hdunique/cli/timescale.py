@@ -9,7 +9,7 @@ couple of minutes. Writes one parquet per mouse plus a per-mouse figure.
 
 The point of the exercise is that the 200 ms diffusion constant and the 5 s one need not agree, and
 that comparing them is only meaningful once circular wrapping is dealt with. See
-docs/2026-08-03-long-timescale-diffusion.md.
+docs/long_D/2026-08-03-long-timescale-diffusion.md.
 """
 
 import dataclasses

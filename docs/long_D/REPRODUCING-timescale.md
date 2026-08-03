@@ -5,7 +5,7 @@ Every number, table and figure in
 the commands below. Nothing there is quoted without a command here that regenerates it.
 
 Setup (data, environment, `uv sync`) is identical to the main pipeline — follow
-[`REPRODUCING.md`](./REPRODUCING.md) §0 first, then come back here.
+[`REPRODUCING.md`](../porting/REPRODUCING.md) §0 first, then come back here.
 
 > **⚠️ The `OUTPUT_PATH` trap.** An exported `OUTPUT_PATH` from another project wins over `.envrc`,
 > because the code reads `os.environ` first. Every command below is shown with it set explicitly.
@@ -42,7 +42,7 @@ Mouse25-140130 [ADn]  200ms:0.96/0.73  500ms:1.02/0.79  5000ms:0.72/0.52
 where each `Xms:a/b` is D from the `unwrapped`/`circular` estimators at that window.
 
 **Prerequisite:** the decode cache must be present. It ships with the repo; if you deleted it, run
-`uv run hd-diffusion --scope all` first (hours — see [`REPRODUCING.md`](./REPRODUCING.md) §1).
+`uv run hd-diffusion --scope all` first (hours — see [`REPRODUCING.md`](../porting/REPRODUCING.md) §1).
 
 ### Variants
 
@@ -282,4 +282,4 @@ Expected: `2/537` — 5 s is comfortably supported.
 `hd-timescale` performs no fitting and draws no random numbers: it is a deterministic function of
 the cached decoded angles. Re-running it reproduces its parquets exactly. The only stochastic step
 in the whole chain is the ring fit, which happened upstream in `hd-diffusion` and is seeded there
-(see [`REPRODUCING.md`](./REPRODUCING.md) §5).
+(see [`REPRODUCING.md`](../porting/REPRODUCING.md) §5).

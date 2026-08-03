@@ -17,7 +17,7 @@ circuit*](https://www.nature.com/articles/s41593-019-0460-x), Nature Neuroscienc
 with only ~6 mice its confidence interval spans nearly the whole range and includes zero. The
 honest statement is *"between-mouse and within-mouse variability are not separable at this sample
 size"*, not *"mice differ from each other"*. Details in
-[`docs/variance-decomposition.md`](./docs/variance-decomposition.md).
+[`docs/variance-decomposition.md`](./docs/porting/results-variance-decomposition.md).
 
 ---
 
@@ -26,12 +26,12 @@ size"*, not *"mice differ from each other"*. Details in
 | If you want to… | Read |
 |---|---|
 | Know what the paper specifies, and where we depart from it | [`docs/methods.md`](./docs/methods.md) |
-| Run everything yourself | [`docs/REPRODUCING.md`](./docs/REPRODUCING.md) |
-| See the diffusion constants per session | [`docs/rem-diffusion.md`](./docs/rem-diffusion.md) |
-| See the between/within-mouse decomposition | [`docs/variance-decomposition.md`](./docs/variance-decomposition.md) |
-| See how *D* depends on the measurement window (200 ms vs 500 ms vs 5 s) | [`docs/2026-08-03-long-timescale-diffusion.md`](./docs/2026-08-03-long-timescale-diffusion.md) |
-| Reproduce that timescale analysis | [`docs/REPRODUCING-timescale.md`](./docs/REPRODUCING-timescale.md) |
-| Understand how this code got here, and what was wrong before | [`docs/2026-08-02-port-rem-diffusion-and-variance.md`](./docs/2026-08-02-port-rem-diffusion-and-variance.md) |
+| Run everything yourself | [`docs/REPRODUCING.md`](./docs/porting/REPRODUCING.md) |
+| See the diffusion constants per session | [`docs/rem-diffusion.md`](./docs/porting/results-rem-diffusion.md) |
+| See the between/within-mouse decomposition | [`docs/variance-decomposition.md`](./docs/porting/results-variance-decomposition.md) |
+| See how *D* depends on the measurement window (200 ms vs 500 ms vs 5 s) | [`docs/2026-08-03-long-timescale-diffusion.md`](./docs/long_D/2026-08-03-long-timescale-diffusion.md) |
+| Reproduce that timescale analysis | [`docs/REPRODUCING-timescale.md`](./docs/long_D/REPRODUCING-timescale.md) |
+| Understand how this code got here, and what was wrong before | [`docs/2026-08-02-port-rem-diffusion-and-variance.md`](./docs/porting/2026-08-02-port-rem-diffusion-and-variance.md) |
 
 ## Quick start
 
@@ -47,7 +47,7 @@ uv run hd-timescale                                  # D at 200 ms / 500 ms / 5 
 ```
 
 Full instructions, including quicker subsets and the diagnostic runs, are in
-[`docs/REPRODUCING.md`](./docs/REPRODUCING.md).
+[`docs/REPRODUCING.md`](./docs/porting/REPRODUCING.md).
 
 ## Repository structure
 
@@ -77,7 +77,13 @@ src/
       variance.py           -> hd-variance
       variance_by_window.py -> hd-variance-by-window
 
-docs/            Methods, results, reproduction instructions, and the port record
+docs/
+  methods.md     The paper's specification, and every deliberate departure from it
+  porting/       How the pipeline got here from the predecessor repo, and its results:
+                 the port record, REPRODUCING.md, results-rem-diffusion.md,
+                 results-variance-decomposition.md
+  long_D/        How D depends on the measurement window (200 ms / 500 ms / 5 s),
+                 the circular-wrapping treatment, and REPRODUCING-timescale.md
 scripts/         Provenance tools that are not part of the pipeline: migrate_cache.py (how the
                  shipped decode cache got here) and verify_cache.py (the cold recompute that
                  validates it). Tracked, because the port record cites them as evidence.

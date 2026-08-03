@@ -6,7 +6,7 @@
 
 Reports tau^2 / sigma^2 / ICC with parametric-bootstrap CIs and a one-way ANOVA cross-check. With
 `--sensitivity-ungated` the ungated fit is printed alongside, so the gate's effect on the
-decomposition is visible rather than hidden. See docs/variance-decomposition.md.
+decomposition is visible rather than hidden. See docs/porting/results-variance-decomposition.md.
 """
 
 import warnings

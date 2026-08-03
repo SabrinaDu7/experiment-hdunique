@@ -15,7 +15,7 @@ belongs to. Where they disagree materially, `D_bout_aware` is the one to trust.
 
 > ⚠️ **These values use DANDI's REM scoring, not the scoring behind the paper's numbers, so they
 > are not directly comparable to the paper's reported *D*.** The two scorings disagree
-> substantially on some sessions. See [`methods.md`](./methods.md) §5.
+> substantially on some sessions. See [`methods.md`](../methods.md) §5.
 
 **Settings** (all of them the config defaults): 12-knot ring, best of 10 restarts by `fit_err`,
 5 refits, `fit_frac=1.0`, dt = σ = 100 ms, Isomap → 3-D with 5 neighbours, first 15 000 samples,
@@ -170,7 +170,7 @@ a larger fraction of a shallower curve.
 No conclusion above changes — the ordering of sessions is preserved and Mouse25-140130 remains ~2×
 the paper's 0.52 either way. Both estimates are reported side by side rather than one being
 designated *the* estimate; the variance decomposition is run on both and is
-[insensitive to the choice](./variance-decomposition.md).
+[insensitive to the choice](./results-variance-decomposition.md).
 
 Note that the paper's own bootstrap procedure is inherently bout-aware, which is an independent
 argument that `D_bout_aware` is the quantity the paper's method actually targets.

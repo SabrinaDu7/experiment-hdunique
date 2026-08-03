@@ -3,7 +3,7 @@
 **Date:** 2026-08-02
 **Produced by:** `uv run hd-variance`, `uv run hd-variance-by-window`
 **Reproduce:** [`REPRODUCING.md`](./REPRODUCING.md) §2
-**Input:** the ADn rows of `diffusion_Mouse<m>.parquet` ([`rem-diffusion.md`](./rem-diffusion.md))
+**Input:** the ADn rows of `diffusion_Mouse<m>.parquet` ([`rem-diffusion.md`](./results-rem-diffusion.md))
 
 Run on **both co-headline estimates** of *D* (`--estimator D` and `--estimator D_bout_aware`). The
 conclusion is the same either way; tables below give both.
@@ -123,7 +123,7 @@ Note how hard Mouse20 (n = 1) is shrunk: raw mean +1.045 → +0.694, with the wi
 ## The ICC does not depend on the fit window
 
 The same decomposition on the wider origin-forced windows (`D_300`…`D_500` — the **saturation
-diagnostics** from [`rem-diffusion.md`](./rem-diffusion.md), *not* alternative estimates of *D*):
+diagnostics** from [`rem-diffusion.md`](./results-rem-diffusion.md), *not* alternative estimates of *D*):
 
 | Window | τ² | σ² | **ICC** | ICC 95% CI | ANOVA ICC |
 |---|---|---|---|---|---|
@@ -169,7 +169,7 @@ rescales the absolute variances. (`variance_by_window_ADn_min15_D.csv`, `varianc
   0.216): between- and within-mouse variability are indistinguishable.
 
 - **⚠️ The cell-count gate is the weakest link, and a better gate exists.**
-  [`rem-diffusion.md`](./rem-diffusion.md) shows cell count is only a *noisy* proxy for ring quality:
+  [`rem-diffusion.md`](./results-rem-diffusion.md) shows cell count is only a *noisy* proxy for ring quality:
   the ≥15 gate discards **Mouse20-130520** (10 cells, D = 0.93, nugget −0.005) and
   **Mouse25-140206** (14 cells, D = 0.91, nugget −0.009), both clean by every other diagnostic,
   while keeping **Mouse24-131217/8** (16 cells, D ≈ 2.0, nugget ≈ +0.05). **Gating on `nugget` would

@@ -9,7 +9,7 @@ window up to 5 s is refitted from what is already on disk — no cache access an
 curves. Run `hd-timescale` for each cell set first.
 
 The `circular` estimator is the default because these windows are long enough for wrapping to
-matter; see docs/2026-08-03-long-timescale-diffusion.md §3.
+matter; see docs/long_D/2026-08-03-long-timescale-diffusion.md §3.
 """
 
 import dataclasses

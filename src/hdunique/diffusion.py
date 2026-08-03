@@ -11,7 +11,7 @@ is twice the diffusion coefficient of the physics convention.
 The line is forced through the origin: at zero lag the squared change is exactly zero, so the
 intercept is not a free parameter. (The source repo instead added (0,0) as a data point to a
 free-intercept fit while calling it "through the origin" — see
-docs/2026-08-02-port-rem-diffusion-and-variance.md, problem P2.)
+docs/porting/2026-08-02-port-rem-diffusion-and-variance.md, problem P2.)
 """
 
 import numpy as np
@@ -34,7 +34,7 @@ def diffusion_curve(
     straddles a bout boundary. Pass None to pool across the whole concatenated trace, which is what
     the source pipeline did and what the published numbers use; the boundary-crossing pairs are
     separated by minutes of unscored sleep and inflate the curve slightly (see
-    docs/2026-08-02-port-rem-diffusion-and-variance.md, open question Q1).
+    docs/porting/2026-08-02-port-rem-diffusion-and-variance.md, open question Q1).
     """
     if bout_lengths is None:
         return af.get_diffusion_curve(angles, np.asarray(lags))

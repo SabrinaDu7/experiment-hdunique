@@ -1,7 +1,7 @@
 # Reproducing every result in this repo
 
-Every number and figure in [`rem-diffusion.md`](./rem-diffusion.md) and
-[`variance-decomposition.md`](./variance-decomposition.md) is produced by the commands below. No
+Every number and figure in [`rem-diffusion.md`](./results-rem-diffusion.md) and
+[`variance-decomposition.md`](./results-variance-decomposition.md) is produced by the commands below. No
 result is quoted anywhere in this repo without a command here that regenerates it.
 
 ---
@@ -88,7 +88,7 @@ uv run hd-diffusion --scope mouse --mouse 25
 > session that is not cached costs the full 8–15 minutes.
 
 The diagnostic cell sets (used only to justify the ADn-only choice, see
-[`rem-diffusion.md`](./rem-diffusion.md) §"Why ADn only"):
+[`rem-diffusion.md`](./results-rem-diffusion.md) §"Why ADn only"):
 
 ```bash
 uv run hd-diffusion --scope all --cell-areas PoS
