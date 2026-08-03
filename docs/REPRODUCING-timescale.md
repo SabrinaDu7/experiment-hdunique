@@ -134,6 +134,46 @@ EOF
 
 ---
 
+## 3b. The per-cell-set strip figures (§5.4)
+
+Requires timescale parquets for all three cell sets:
+
+```bash
+uv run hd-timescale --cell-set ADn
+uv run hd-timescale --cell-set ADn+PoS --no-make-plot
+uv run hd-timescale --cell-set PoS --no-make-plot
+
+uv run hd-cellset-strip                       # 1, 2, 3, 4, 5 s -> five figures
+uv run hd-cellset-strip --windows-ms 200 500  # any window up to 5 s
+uv run hd-cellset-strip --estimator wrapped   # or unwrapped
+```
+
+Writes `diffusion_by_cellset_<window>ms_<estimator>.png`. Seconds to run: *D* at each window is
+refitted from the 50-point curves already stored in the timescale parquets, so the cache is not
+touched. All five figures share one D axis.
+
+Any session whose *D* is undefined at a window (circular estimator, resultant ≤ 0) is dropped and
+named on stdout — currently only `Mouse25-140205 [PoS]` at 5 s.
+
+The §5.4 table:
+
+```bash
+uv run python - <<'EOF'
+import numpy as np
+from hdunique.cli.cellset_strip import load_curves, fit_window
+print(f"{'cell set':10s} {'n':>4s}" + "".join(f"{w/1000:>8.1f}s" for w in (200,1000,2000,3000,4000,5000)))
+for cs in ("ADn", "ADn+PoS", "PoS"):
+    f = load_curves(cell_set=cs)
+    med = []
+    for w in (200, 1000, 2000, 3000, 4000, 5000):
+        d = fit_window(frame=f, window_ms=w, estimator="circular", dt=0.1)["D"]
+        med.append(d[np.isfinite(d) & (d > 0)].median())
+    print(f"{cs:10s} {len(f):4d}" + "".join(f"{v:9.2f}" for v in med))
+EOF
+```
+
+---
+
 ## 4. Verifying the method itself
 
 These are the checks the results doc rests on. Each is a few seconds.

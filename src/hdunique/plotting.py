@@ -138,9 +138,14 @@ def _strip_panel(
     *, ax: plt.Axes, df: pd.DataFrame, order: list[int], colors: dict[int, str], seed: int,
     count_col: str = "n_cells", well_sampled: int = WELL_SAMPLED_CELLS,
 ) -> None:
-    """Every session as a dot with the mouse mean as a bar. Open marks flag low-cell sessions,
-    kept visible rather than silently gated away. Cell count is only a noisy proxy for ring quality
-    (`nugget` separates clean from dirty better), so the mark is a flag to check, not a verdict."""
+    """Every session as a dot with the mouse mean as a bar.
+
+    Two different cell-count thresholds are in play and the labelling must keep them apart: the
+    *gate* (`VarianceConfig.min_adn_cells`, named in the figure title) decides which sessions appear
+    at all, while `well_sampled` here only decides filled versus open markers among those that did.
+    Open marks flag sessions whose ring may be undersampled, kept visible rather than silently gated
+    away. Cell count is only a noisy proxy for ring quality (`nugget` separates clean from dirty
+    better), so the mark is a flag to check, not a verdict."""
     rng = np.random.default_rng(seed)
     for i, mouse in enumerate(order):
         sub = df[df["mouse"] == mouse]
@@ -159,9 +164,10 @@ def _strip_panel(
     ax.set_title("A — every session (bar = mouse mean)", fontsize=10, loc="left")
     ax.legend(
         handles=[
-            plt.Line2D([], [], ls="none", marker="o", color="0.35", label=f"≥{well_sampled} cells"),
+            plt.Line2D([], [], ls="none", marker="o", color="0.35",
+                       label=f"≥{well_sampled} cells (well sampled)"),
             plt.Line2D([], [], ls="none", marker="o", mfc="none", color="0.35",
-                       label=f"<{well_sampled} cells"),
+                       label=f"<{well_sampled} cells (D may be inflated)"),
             plt.Line2D([], [], ls="--", color="0.55", label="grand mean"),
         ],
         frameon=False, fontsize=8, loc="upper left",
@@ -213,7 +219,7 @@ def plot_variance_summary(
 
     fig.suptitle(
         f"REM diffusion across mice and sessions "
-        f"({cfg.cell_set}, ≥{cfg.min_adn_cells} cells, {cfg.window_ms} ms window)",
+        f"({cfg.cell_set}, gated at ≥{cfg.min_adn_cells} cells, {cfg.window_ms} ms window)",
         fontsize=12,
     )
     fig.savefig(save_path, dpi=150)
@@ -285,6 +291,71 @@ def plot_timescale_curves(
     fig.suptitle(
         f"Mouse{mouse}  REM diffusion across timescales ({cell_set}); "
         f"dashed = 200 ms rate extrapolated",
+        fontsize=12,
+    )
+    fig.savefig(save_path, dpi=150)
+    plt.close(fig)
+    print(f"  saved {save_path}")
+
+
+def plot_cellset_strip(
+    *, frames: dict[str, pd.DataFrame], window_ms: int, estimator: str, well_sampled: int,
+    ylim: tuple[float, float], save_path: Path,
+) -> None:
+    """REM diffusion at one measurement window, one strip panel per cell set.
+
+    Same visual grammar as `plot_variance_summary`'s panel A — one dot per session, x-jittered
+    within its mouse, mouse mean as a bar, grand mean dashed, log-D axis with raw-D tick labels —
+    repeated per cell set so the three can be read against each other. A mouse holds the same x slot
+    and colour in every panel, and `ylim` is shared across panels *and* across the figures for the
+    other windows, so the whole set is directly comparable.
+
+    No gate is applied: every session with that cell set is drawn, with open marks flagging the
+    ones below `well_sampled`. At these lags the low-cell sessions are exactly the ones whose
+    estimate is least trustworthy, so hiding them would hide the caveat.
+    """
+    order = sorted({int(m) for f in frames.values() for m in f["mouse"]})
+    colors = {m: f"C{i}" for i, m in enumerate(order)}
+    rng = np.random.default_rng(0)
+
+    fig, axes = plt.subplots(
+        1, len(frames), figsize=(3.6 * len(frames) + 1.2, 4.6), constrained_layout=True,
+        sharey=True, squeeze=False,
+    )
+    for ax, (cell_set, frame) in zip(axes[0], frames.items(), strict=True):
+        for i, mouse in enumerate(order):
+            sub = frame[frame["mouse"] == mouse]
+            if not len(sub):
+                continue
+            x = i + rng.uniform(-0.09, 0.09, len(sub))
+            well = (sub["n_cells"] >= well_sampled).to_numpy()
+            ax.scatter(x[well], sub["log_D"][well], s=42, color=colors[mouse], zorder=3)
+            ax.scatter(x[~well], sub["log_D"][~well], s=42, facecolors="none",
+                       edgecolors=colors[mouse], lw=1.4, zorder=3)
+            ax.hlines(sub["log_D"].mean(), i - 0.28, i + 0.28, color=colors[mouse], lw=3, zorder=4)
+        if len(frame):
+            ax.axhline(frame["log_D"].mean(), ls="--", color="0.55", lw=1.0, zorder=1)
+        ax.set_xticks(range(len(order)), [f"Mouse{m}" for m in order], rotation=45, ha="right")
+        ax.set_xlim(-0.6, len(order) - 0.4)
+        ax.set_title(f"{cell_set}  (n = {len(frame)} sessions)", fontsize=10, loc="left")
+
+    axes[0][0].set_ylabel("D (rad²/s, log scale)")
+    axes[0][0].set_ylim(*ylim)
+    ticks = D_TICKS[(np.log(D_TICKS) > ylim[0]) & (np.log(D_TICKS) < ylim[1])]
+    axes[0][0].set_yticks(np.log(ticks), [f"{t:g}" for t in ticks])
+    axes[0][0].legend(
+        handles=[
+            plt.Line2D([], [], ls="none", marker="o", color="0.35",
+                       label=f"≥{well_sampled} cells (well sampled)"),
+            plt.Line2D([], [], ls="none", marker="o", mfc="none", color="0.35",
+                       label=f"<{well_sampled} cells (D may be inflated)"),
+            plt.Line2D([], [], ls="--", color="0.55", label="grand mean (this panel)"),
+        ],
+        frameon=False, fontsize=8, loc="lower left",
+    )
+    fig.suptitle(
+        f"REM diffusion by cell set — {window_ms / 1000:g} s measurement window "
+        f"({estimator} estimator); bar = mouse mean",
         fontsize=12,
     )
     fig.savefig(save_path, dpi=150)

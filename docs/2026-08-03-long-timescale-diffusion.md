@@ -243,6 +243,42 @@ measurement under different REM scoring.
 
 ---
 
+## 5.4 By cell set, across 1–5 s
+
+`hd-cellset-strip` draws the same strip form as `variance_by_mouse_*.png` panel A — one dot per
+session, x-jittered within its mouse, mouse mean as a bar, log-D axis with raw-D ticks — repeated
+per cell set, one figure per window, **all five figures on a shared D axis** so they can be read
+against each other.
+
+Figures: `diffusion_by_cellset_{1000,2000,3000,4000,5000}ms_circular.png`.
+
+Median *D* (rad²/s), circular estimator, ungated:
+
+| cell set | n | 0.2 s | 1 s | 2 s | 3 s | 4 s | 5 s |
+|---|---|---|---|---|---|---|---|
+| ADn | 32 | 0.90 | 0.74 | 0.55 | 0.46 | 0.41 | **0.36** |
+| ADn+PoS | 13 | 0.64 | 0.55 | 0.50 | 0.43 | 0.41 | **0.39** |
+| PoS | 20 | 4.21 | 2.55 | 1.61 | 1.20 | 0.99 | **0.83** |
+
+**Two things are visible in the figures that are not obvious from the 200 ms numbers.**
+
+**The cell sets converge as the window lengthens.** PoS sits 4.7× above ADn at 200 ms, 3.5× at 1 s,
+and only 2.3× at 5 s. That is what a shared ceiling looks like: once every trace has explored an
+appreciable fraction of the ring, the measured rate is dominated by the size of the ring rather than
+by the quality of the decode, so a near-noise cell set and a good one start to look alike. **It is
+not evidence that PoS improves at long lags** — it is evidence that the measurement loses the
+ability to tell them apart.
+
+**Within-set spread collapses too**, for the same reason — IQR of log *D* across ADn sessions falls
+0.2 s → 5 s from **1.07 to 0.40**. The between-session differences that the variance decomposition
+is built on are largely a short-timescale phenomenon; at 5 s most sessions land in a narrow band
+around 0.3–0.5. PoS is the exception (IQR 0.57 → 0.66, i.e. no collapse), which is itself a symptom
+— its spread is decode noise, not dynamics, and noise does not respect the ring.
+
+**One session is undropped-but-unmeasurable:** Mouse25-140205 PoS (6 cells) has ⟨cos Δα⟩ = 0.014 at
+5 s and its resultant goes negative at 4.8 s, so the circular estimator is undefined there. It is
+excluded from the 5 s panel and named on stdout rather than silently omitted.
+
 ## 6. Interpretation
 
 **The angle is diffusive on the timescale the paper measures, and confined on the timescale of

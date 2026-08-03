@@ -73,6 +73,7 @@ src/
       diffusion.py          -> hd-diffusion
       diffusion_grid.py     -> hd-diffusion-grid
       timescale.py          -> hd-timescale
+      cellset_strip.py      -> hd-cellset-strip
       variance.py           -> hd-variance
       variance_by_window.py -> hd-variance-by-window
 
