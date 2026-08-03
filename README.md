@@ -29,6 +29,8 @@ size"*, not *"mice differ from each other"*. Details in
 | Run everything yourself | [`docs/REPRODUCING.md`](./docs/REPRODUCING.md) |
 | See the diffusion constants per session | [`docs/rem-diffusion.md`](./docs/rem-diffusion.md) |
 | See the between/within-mouse decomposition | [`docs/variance-decomposition.md`](./docs/variance-decomposition.md) |
+| See how *D* depends on the measurement window (200 ms vs 500 ms vs 5 s) | [`docs/2026-08-03-long-timescale-diffusion.md`](./docs/2026-08-03-long-timescale-diffusion.md) |
+| Reproduce that timescale analysis | [`docs/REPRODUCING-timescale.md`](./docs/REPRODUCING-timescale.md) |
 | Understand how this code got here, and what was wrong before | [`docs/2026-08-02-port-rem-diffusion-and-variance.md`](./docs/2026-08-02-port-rem-diffusion-and-variance.md) |
 
 ## Quick start
@@ -41,6 +43,7 @@ source .envrc                                        # or: direnv allow
 
 uv run hd-diffusion --scope all                      # the sweep (hours)
 uv run hd-variance                                   # the decomposition (minutes)
+uv run hd-timescale                                  # D at 200 ms / 500 ms / 5 s (~2 min)
 ```
 
 Full instructions, including quicker subsets and the diagnostic runs, are in
@@ -62,12 +65,14 @@ src/
     rates.py       Sum-of-Gaussians firing rates, computed per REM bout
     manifold.py    Isomap embedding, the 12-knot ring fit, and the per-refit decode
     diffusion.py   The diffusion curve, the origin-forced fit and its bootstrap — the estimator
+    timescale.py   Long-lag diffusion: the three wrapping-aware estimators and their diagnostics
     sweep.py       One session -> one result row; the CacheEntry record and the parquet tables
     variance.py    The random-intercept LMM, its bootstrap, and the ANOVA cross-check
     plotting.py    Every figure, plus the DiffusionPanel record both diffusion figures draw
     cli/           Entry points. Each is argument parsing and reporting only; the science is above.
       diffusion.py          -> hd-diffusion
       diffusion_grid.py     -> hd-diffusion-grid
+      timescale.py          -> hd-timescale
       variance.py           -> hd-variance
       variance_by_window.py -> hd-variance-by-window
 
@@ -79,7 +84,7 @@ throwaway/       Scratch space for quick one-offs that need not live anywhere pe
 outputs/results/ Parquets and the decode cache (tracked), figures (not tracked)
 ```
 
-`hdunique/` is ten modules, so it is deliberately **flat**: an `io/` or `analysis/` subpackage
+`hdunique/` is eleven modules, so it is deliberately **flat**: an `io/` or `analysis/` subpackage
 would add import depth without removing a single decision about where code goes. `cli/` is the one
 subpackage that earns its keep, because it is the only group with a shared contract (each module
 exposes `run(cfg=...)` plus a `main()` console script).
@@ -94,6 +99,7 @@ loader, config, env → spud`. Nothing in `hdunique/` is imported by `spud/`, an
 |---|---|
 | Per-session diffusion constants | `$OUTPUT_PATH/results/diffusion_Mouse<m>.parquet` |
 | Decode cache (embedding + decoded angles) | `$OUTPUT_PATH/results/cache/*.npz` |
+| D across measurement windows | `$OUTPUT_PATH/results/timescale_Mouse<m>_ADn.parquet` |
 | Figures | `$OUTPUT_PATH/results/*.png` |
 
 The parquets are the primary artefact. The cache exists so that any new diffusion metric is a

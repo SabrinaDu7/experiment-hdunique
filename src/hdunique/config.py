@@ -28,6 +28,15 @@ FIT_WINDOWS_MS: tuple[int, ...] = (200, 300, 400, 500)
 #: The paper's fit window; its columns are unsuffixed in the parquet.
 HEADLINE_WINDOW_MS: int = 200
 
+# --- long-timescale analysis (hd-timescale) ---
+
+#: Fit windows for the timescale comparison: the paper's 200 ms, the widest window the original
+#: sweep already reported, and 5 s — where circular wrapping dominates and must be circumvented.
+TIMESCALE_WINDOWS_MS: tuple[int, ...] = (200, 500, 5000)
+
+#: Longest lag the timescale curves are evaluated at, in bins (50 x 100 ms = 5 s).
+TIMESCALE_MAX_LAG: int = 50
+
 
 @dataclasses.dataclass(frozen=True)
 class DiffusionConfig:

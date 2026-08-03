@@ -31,6 +31,7 @@ dependencies = [
 [project.scripts]
 hd-diffusion = "hdunique.cli.diffusion:main"
 hd-diffusion-grid = "hdunique.cli.diffusion_grid:main"
+hd-timescale = "hdunique.cli.timescale:main"
 hd-variance = "hdunique.cli.variance:main"
 hd-variance-by-window = "hdunique.cli.variance_by_window:main"
 
