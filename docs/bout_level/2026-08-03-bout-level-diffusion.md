@@ -192,6 +192,69 @@ that actually matters: the **within-group** spread dwarfs any between-group diff
 three sessions occupy completely different *D* ranges (1.3, 1.5, 4.9) that track cell count
 (39, 25, 6) rather than anything about bout context.
 
+## 4d. Cell-count-matched subset: the between-mouse effect survives ⚠️ (revises §4b)
+
+§4b showed that regressing out decode quality collapses between-mouse variance to ~2 %. That
+correction is **over-aggressive**, and the matched-subset test shows why.
+
+Cell count is the one quality variable that is unambiguously **exogenous** — fixed by the implant,
+and impossible for the dynamics to cause. Ring scatter and refit spread are not: a genuinely
+fast-drifting bump is *harder to track*, so it produces more off-ring excursions and less stable
+fits. Regressing those out therefore controls for a partial **consequence** of *D*, not just a cause.
+
+Restricting to sessions with **14–28 ADn cells** — 21 sessions, 5 mice, per-mouse medians 16–25 —
+removes the cell-count confound directly:
+
+| Mouse | sessions | median cells | median *D* | median nugget |
+|---|---|---|---|---|
+| Mouse25 | 5 | 18 | **0.66** | −0.01 |
+| Mouse28 | 4 | 21.5 | **0.91** | −0.00 |
+| Mouse17 | 8 | 25 | 1.58 | 0.03 |
+| Mouse24 | 3 | 16 | 2.06 | 0.06 |
+| Mouse20 | 1 | 16 | **2.83** | 0.08 |
+
+| | value |
+|---|---|
+| ICC | **0.647**, 95 % CI [0.004, 0.889] (ANOVA cross-check 0.635) |
+| Kruskal–Wallis, *D* differs across mice | **p = 0.0079** |
+| ρ(cell count, *D*) *within* the band | **−0.115** (confound removed) |
+
+**The between-mouse difference survives, and strengthens** — a 4.3× spread in median *D* at matched
+cell count, significant by Kruskal–Wallis. The ICC is if anything higher than on the full data
+(0.647 vs 0.587), while its CI stays wide because 5 mice is still 5 mice.
+
+**Revised conclusion.** Mice do appear to differ, and it is not simply cell count. What remains
+unresolvable is the *variance ratio*: the ICC point estimate moves around and its interval spans
+almost the whole range. So "is there a mouse effect?" has support (p = 0.008); "is between-mouse
+variance larger than within-mouse?" does not, and will not at n = 5–6.
+
+## 4e. The long-lag sub-diffusion is NOT a mixing artefact
+
+The decisive test proposed in the long-timescale doc, now run: compute the anomalous exponent α over
+1–5 s **within single bouts** (no mixing possible) and compare with the pooled value.
+
+| | median α (1–5 s) | IQR |
+|---|---|---|
+| pooled across bouts | 0.54 | 0.38–0.75 |
+| **within single bouts** | **0.50** | 0.33–0.76 |
+
+Difference −0.004, **Wilcoxon p = 0.98**, higher in 15 of 32 sessions.
+
+**The sub-diffusion is fully present inside a single REM bout.** Bout-to-bout heterogeneity is real
+(§3, 6.4× median range) but it does *not* cause the falling *D*(τ) — that prediction, made when
+interpreting the long-timescale results, is **wrong** and is corrected here.
+
+So the remaining explanation is genuine confinement: the decoded angle is not freely diffusing on
+the ring, something restores it. Consistent with that, occupancy is **not uniform** — median
+circular resultant of the decoded-angle distribution is 0.205, with 17 of 32 sessions above 0.2, so
+some directions are visited far more than others.
+
+**Whether those preferred directions are real or a decode artefact is open.** Occupancy uniformity
+correlates with cell count (ρ = +0.328), i.e. lumpiness is worse with fewer cells, which is what an
+unevenly sampled spline ring would produce: nearest-point decoding preferentially assigns points to
+densely-fit arcs, manufacturing attraction. That is the leading alternative to a biological
+restoring force and is not yet excluded.
+
 ## 5. What this does and does not settle
 
 **Settles:**
@@ -211,13 +274,16 @@ three sessions occupy completely different *D* ranges (1.3, 1.5, 4.9) that track
   adds hundreds of observations but no degrees of freedom at the mouse level, so the CI on the
   mouse component is no narrower than before. This analysis sharpens *what σ² means*; it does not
   add power to the original question.
-- **Confinement versus heterogeneity.** Heterogeneity is now demonstrated, but the decisive test
-  proposed earlier — within-bout α versus pooled α — has not been run.
+- **Whether the confinement is biological.** §4e rules out mixing, leaving a genuine restoring
+  tendency — but non-uniform ring occupancy could equally come from uneven spline sampling, and
+  that correlates with cell count. Distinguishing them needs a synthetic control: decode a *known*
+  free random walk through the same fitted ring and see whether α < 1 appears anyway.
 
 ## 6. Open next steps
 
-1. **Within-bout α.** If per-bout α ≈ 1 while pooled α ≈ 0.53, the sub-diffusion is *entirely* a
-   mixing artefact. Cheap, decisive.
-2. **Is bout *D* explained by bout decode quality?** Regress per-bout log *D* on per-bout `nugget`.
-   If it absorbs most of the bout-level variance, that 35 % is measurement, not biology.
-3. **Bout-level ICC with proper CIs**, by parametric bootstrap over the nested design.
+1. ~~Within-bout α~~ — done (§4e): sub-diffusion is real, not mixing.
+2. ~~Is bout *D* decode quality?~~ — done (§4b, §4d): partly, but the naive correction over-corrects.
+3. **Synthetic ring control.** Push a known free random walk through each session's fitted ring and
+   measure α. If α < 1 emerges from a genuinely free walk, the confinement in §4e is a decode
+   artefact. This is now the single highest-value test.
+4. **Bout-level ICC with proper CIs**, by parametric bootstrap over the nested design.
