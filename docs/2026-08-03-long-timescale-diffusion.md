@@ -279,9 +279,14 @@ statement about the size of the ring than about the rate of drift.
   (§3.1). Absolute *D* values in the table are therefore not comparable with the published
   `wrapped` 200 ms numbers; the *ratios across windows* and the *exponents* are the meaningful
   quantities. The published column is included in the table only for orientation.
-- **No confidence intervals.** The epoch bootstrap in `diffusion.bootstrap_ci` is built for the
-  200 ms window and would need a 5 s epoch — which most bouts can supply only a handful of, so the
-  CI would be very wide. Not attempted.
+- **No confidence intervals, and the 5 s point is weaker than the raw pair count suggests.** The
+  *raw* number of pairs barely falls with lag — 93 % of the lag-1 count survives at 5 s, because a
+  5 s lag costs only 50 samples per bout and bouts run 300–1000 samples. But long-lag pairs overlap
+  almost completely (pairs starting one bin apart share 49/50 of their span), so the *independent*
+  sample count falls ~50×: **~245 non-overlapping 5 s windows per session against ~4 300 at
+  200 ms.** The curve point is still well determined, but not by as much as `pairs_at_max_lag`
+  implies. The epoch bootstrap in `diffusion.bootstrap_ci` would need 5 s epochs, of which there are
+  only those ~245, so its interval would be wide. Not attempted.
 - **ADn only**, matching the rest of the repo. The PoS and ADn+PoS caches exist and
   `hd-timescale --cell-set PoS` runs, but PoS is near-noise and the wrapping problem is far worse
   there.
