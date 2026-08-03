@@ -255,6 +255,68 @@ unevenly sampled spline ring would produce: nearest-point decoding preferentiall
 densely-fit arcs, manufacturing attraction. That is the leading alternative to a biological
 restoring force and is not yet excluded.
 
+## 4f. Synthetic ring control: how much of the sub-diffusion is instrument? (all 32 sessions)
+
+`scripts/synthetic_ring_control.py`. A walk that is **free by construction** is pushed through each
+session's own fitted ring and its own *D* calculation. α = 1 means "free walk"; anything less is
+manufactured somewhere. Three quantities are separated:
+
+| column | what it isolates |
+|---|---|
+| `alpha_truth` | the **estimator** alone — α of the synthetic angles before any decoding |
+| `alpha_clean` | + the ring **parameterisation** (points placed exactly on the curve) |
+| `alpha_noisy` | + **projection of off-ring noise** (empirical residuals resampled) |
+| `alpha_real − alpha_noisy` | the remainder: **dynamics** |
+
+### Results
+
+| | median α |
+|---|---|
+| free walk, before decoding (`truth`) | **1.06** |
+| free walk, points exactly on ring (`clean`) | 1.06 |
+| free walk + realistic off-ring noise (`noisy`) | **0.88** |
+| **real data** | **0.54** |
+
+**How the raw gap (1.00 → 0.54) splits, by median:**
+
+| source | contribution |
+|---|---|
+| estimator blindness | **−0.055** (none; the estimator slightly *overshoots* on synthetic data) |
+| decoder / off-ring noise | **+0.154** |
+| **dynamics (unexplained)** | **+0.286** |
+
+**The dynamics are the largest single component, not the instrument.** The estimator's blindness —
+which looked decisive on a four-session preview — bites only **2 of 32 sessions**
+(Mouse20-130514 and -130515, 5 and 6 cells, the fastest and thinnest in the dataset), where
+`alpha_truth` falls to 0.27 and 0.33. Everywhere else the estimator is honest.
+
+### The deficit is robust
+
+`deficit = alpha_real − alpha_noisy`, i.e. how far real data sits below a free walk that went
+through the *same* decoder at the *same* speed with the *same* bout structure:
+
+- median **−0.286**, IQR −0.377 to −0.191
+- negative in **29 of 32** sessions, Wilcoxon **p = 2.6 × 10⁻⁸**
+- **independent of cell count** (ρ = +0.197, p = 0.28) and of speed (ρ = −0.218, p = 0.23)
+
+Restricting to the **15 sessions where the machinery is verified honest** (`truth` > 0.9 *and*
+`noisy` > 0.9, so neither estimator nor decoder is doing damage): deficit median **−0.249**,
+negative in **15 of 15**, **p = 6.1 × 10⁻⁵**.
+
+**Conclusion: the decoded REM angle is genuinely sub-diffusive.** It is not the ring
+parameterisation (`clean` ≈ `truth` everywhere), not the estimator (except in 2 thin sessions), and
+not fully explained by projection noise. Something restores the bump toward preferred directions.
+
+### Caveat that bounds this
+
+Off-ring residuals are resampled **i.i.d.**, destroying their temporal correlation. Real off-ring
+excursions are likely persistent, which would make the decoder *more* damaging than this control
+allows — so `alpha_noisy` is optimistic and the −0.25 deficit is an **upper bound**. Resampling
+residuals in contiguous blocks is the fix, and should be done before the effect size is quoted.
+
+The control also starts at the **embedding**, not at spikes, so it does not test rate estimation or
+Isomap. A full end-to-end synthetic (spikes from tuning curves) is the stronger version.
+
 ## 5. What this does and does not settle
 
 **Settles:**
