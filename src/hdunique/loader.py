@@ -2,7 +2,7 @@
 
 Everything here reads the NWB files only. The source repo's CRCNS path (`.ang` / `.states.*` files,
 `spike_counts`, shank-index matching) is deliberately not ported — see
-docs/2026-08-02-port-rem-diffusion-and-variance.md, decision D1.
+docs/porting/2026-08-02-port-rem-diffusion-and-variance.md, decision D1.
 """
 
 import re

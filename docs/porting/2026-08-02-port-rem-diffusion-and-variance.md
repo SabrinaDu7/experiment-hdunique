@@ -9,8 +9,8 @@ alone.
 
 This document records **what was moved, why it was changed, what broke, and what is still open.**
 It is the port record, not a results doc — results live in
-[`rem-diffusion.md`](./rem-diffusion.md) and
-[`variance-decomposition.md`](./variance-decomposition.md); instructions live in
+[`rem-diffusion.md`](./results-rem-diffusion.md) and
+[`variance-decomposition.md`](./results-variance-decomposition.md); instructions live in
 [`REPRODUCING.md`](./REPRODUCING.md).
 
 ---
@@ -183,7 +183,7 @@ the outcome**, since the nugget is the intercept of the same fit whose slope is 
 **Fixed:** promoted to `cli/variance_by_window.py`, tracked, gating on the same ADn cell count as
 the headline decomposition and nothing else. The nugget-gated rounds are not reproduced; a gate
 that conditions on the outcome does not belong in a variance decomposition. The table is re-derived
-in [`variance-decomposition.md`](./variance-decomposition.md).
+in [`variance-decomposition.md`](./results-variance-decomposition.md).
 
 ### P4 — The cache trusted decoded angles it had not verified
 

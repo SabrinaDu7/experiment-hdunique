@@ -6,7 +6,7 @@ Fits log(D) ~ 1 + (1|mouse) once per origin-forced fit window (200/300/400/500 m
 ADn gate, and writes one CSV row per window.
 
 The wider windows are a **saturation diagnostic, not alternative estimates of D** (see
-docs/rem-diffusion.md). The question this answers is narrow: does the *ratio* of the variance
+docs/porting/results-rem-diffusion.md). The question this answers is narrow: does the *ratio* of the variance
 components depend on which window D is read from? An ICC that moved across windows would mean the
 saturation is distributed unevenly across mice; a flat ICC means the decomposition is not an
 artefact of the window choice.

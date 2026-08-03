@@ -6,7 +6,7 @@ population dynamics of a canonical cognitive circuit*, Nature Neuroscience**
 implements. This is the authoritative spec; everything in `src/` is measured against it.
 
 Where this repo deliberately departs from the paper, the departure is listed in §5 and argued in
-[`2026-08-02-port-rem-diffusion-and-variance.md`](./2026-08-02-port-rem-diffusion-and-variance.md).
+[`2026-08-02-port-rem-diffusion-and-variance.md`](./porting/2026-08-02-port-rem-diffusion-and-variance.md).
 
 ---
 
@@ -83,5 +83,6 @@ Each departure is deliberate and argued in the port doc; none is an oversight.
 |---|---|---|
 | "all recorded thalamic cells, without subselection" | **ADn only** | The paper's own reported numbers were established to be ADn-only in the predecessor repo's CRCNS work. Adding postsubiculum cells does not lower D and PoS alone is near-noise. |
 | Sleep-state epochs as scored for the paper (CRCNS `.states.REM`) | **DANDI `states` REM** | Keeps the pipeline self-contained on one public dataset. The two scorings differ substantially on some sessions, so absolute D here is **not** directly comparable to the paper's numbers. |
-| Bootstrap over resampled 200 ms epochs, ×1000 | **not implemented** | The source implementation's "bootstrap" resampled per-bin squared changes, which is a different quantity; rather than port a mislabelled statistic, it was dropped. `D_std` (spread over refits) is reported instead and is explicitly a ring-stability diagnostic, not a CI. |
+| Bootstrap over resampled 200 ms epochs, ×1000 | **implemented** (`diffusion.bootstrap_ci`) | The source implementation's "bootstrap" resampled per-bin squared changes — a different quantity wearing the same name — so rather than port it, the paper's procedure was written from scratch and validated on a synthetic random walk. Because an epoch cannot straddle a REM-bout boundary, the interval it returns is a CI for `D_bout_aware`. `D_std` (spread over refits) is also reported, and is a ring-stability diagnostic, **not** a CI. |
 | Straight-line fit to the first 200 ms | **line forced through the origin** | At zero lag the squared change is exactly zero, so the intercept is not a free parameter. |
+| Diffusion constant fitted over 200 ms | **also reported at 500 ms and 5 s** | The 200 ms fit remains the headline. Longer windows need circular wrapping handled, and show the process is sub-diffusive by 1–5 s — see [`long_D/2026-08-03-long-timescale-diffusion.md`](./long_D/2026-08-03-long-timescale-diffusion.md). |
