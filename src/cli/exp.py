@@ -39,6 +39,9 @@ def _config_for(*, question_id: str, argv: list[str]) -> Any:
 def cmd_list() -> int:
     """Print every registered question, its experiments, and whether it has a collect step."""
     for question_id in experiments.QUESTION_IDS:
+        if question_id in experiments.PLANNED:
+            print(f"  {question_id:12s} [{'planned':15s}] not implemented yet")
+            continue
         module = experiments.load(question_id)
         collect = "collect+analyse" if hasattr(module, "collect") else "analyse only"
         doc = (module.__doc__ or "").strip().splitlines()

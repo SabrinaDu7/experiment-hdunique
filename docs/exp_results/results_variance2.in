@@ -1,0 +1,102 @@
+# variance2 — results
+
+> **Question.** A session is not one continuous stretch of REM but a handful of episodes minutes
+> apart. Does the variance in *D* live between mice, between sessions of a mouse, or between
+> **bouts of a session**?
+
+Methods: [`instructions-variance2.md`](../exp_instructions/instructions-variance2.md).
+
+**@N_BOUTS@ bouts across @N_SESSIONS@ sessions and @N_MICE@ mice.**
+
+---
+
+## variance2_exp1 — three-level decomposition
+
+| component | variance | share |
+|---|---|---|
+| between-mouse | @RAW_VAR_OUTER@ | **@RAW_VAR_OUTER_PCT@ %** |
+| between-session, within mouse | @RAW_VAR_INNER@ | **@RAW_VAR_INNER_PCT@ %** |
+| **between-bout, within session** | @RAW_VAR_RESID@ | **@RAW_VAR_RESID_PCT@ %** |
+
+ICC(mouse) = @RAW_ICC_MOUSE@; ICC(mouse + session) = @RAW_ICC_MOUSE_SESSION@.
+
+Within-session spread: median SD of log *D* = @WITHIN_SESSION_SD@; median max/min *D* across a
+session's bouts = **@WITHIN_SESSION_SPREAD@×**, worst @WITHIN_SESSION_SPREAD_MAX@×.
+
+### Interpretation
+
+**Bout-level variance is the largest single component, and it was previously invisible** — the
+two-level model folded it into the session residual.
+
+The consequence is that a session's *D* is not a session property. It is an average over a
+distribution with a several-fold internal range, so any statement about "between-session variance"
+is partly a statement about how many bouts a session happened to contain.
+
+Read the ICC carefully: @RAW_ICC_MOUSE@ answers *"for a randomly chosen **bout**"*, whereas
+`variance1`'s ICC answers *"for a randomly chosen **session**"*. A session averages over its bouts
+and is less noisy, so the bout-level figure is necessarily lower. They are not in conflict.
+
+## variance2_exp2 — is that bout-level variance biology or decode quality?
+
+Correlations with log *D*, computed **within session** so that between-session differences cannot
+carry them:
+
+@QUALITY_CORRELATIONS@
+
+Together these explain **@QUALITY_VARIANCE_EXPLAINED@ %** of within-session variance.
+
+Decomposition after regressing them out:
+
+| component | share (raw) | share (quality-corrected) |
+|---|---|---|
+| between-mouse | @RAW_VAR_OUTER_PCT@ % | **@CORRECTED_VAR_OUTER_PCT@ %** |
+| between-session | @RAW_VAR_INNER_PCT@ % | @CORRECTED_VAR_INNER_PCT@ % |
+| between-bout | @RAW_VAR_RESID_PCT@ % | @CORRECTED_VAR_RESID_PCT@ % |
+
+ICC(mouse) falls from @RAW_ICC_MOUSE@ to **@CORRECTED_ICC_MOUSE@**.
+
+Per-mouse quality:
+
+@QUALITY_BY_MOUSE@
+
+Correlation between cell count and ring scatter across bouts: ρ = @CELLS_QUALITY_RHO@.
+
+### Interpretation
+
+A third of bout-level variance is decode quality, established with measures **independent of the
+angular dynamics** — so this is not the tautology that regressing *D* on its own `nugget` would be.
+
+⚠️ **But the apparent collapse of between-mouse variance to @CORRECTED_VAR_OUTER_PCT@ % must not be
+read as "mice do not differ".** Quality tracks cell count, which is fixed by the implant, so the
+correction removes real between-mouse variance along with the artefact. Worse, ring scatter and
+refit spread are partly *consequences* of fast drift — a fast-moving bump is harder to track — so
+regressing them out controls for a mediator.
+
+The honest control is to match on cell count, which is exogenous. That is `variance1_exp3`, and
+there the mouse effect **survives**.
+
+---
+
+## Answer to the question
+
+**Variance is spread roughly evenly across all three levels**, with the bout level slightly the
+largest — and it had not been measured before. The practical consequence is that a session's *D* is
+a summary of a distribution rather than a fixed quantity, so the two-level model's "within-mouse"
+component conflates session biology with bout-level noise.
+
+About a third of the bout-level variance is decode quality. The remainder is either real
+physiological variation or quality that these three measures do not capture.
+
+## How to reproduce
+
+```bash
+uv run hd-exp collect variance2
+uv run hd-exp run     variance2
+uv run hd-exp check   variance2
+```
+
+## Next steps
+
+- The two thirds of bout-level variance not explained by quality is unattributed. A quality measure
+  independent of both cell count and the dynamics would settle it.
+- Bout-level ICC with proper intervals, by parametric bootstrap over the nested design.

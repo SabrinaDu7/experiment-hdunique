@@ -1,0 +1,47 @@
+{
+  "config": {
+    "cell_set": "ADn",
+    "context_columns": [
+      "time_frac",
+      "duration_s"
+    ],
+    "d_column": "D_200",
+    "exit_state": "Awake",
+    "min_per_arm": 3,
+    "plot_sessions": [
+      "12-120808",
+      "17-130129",
+      "20-130515"
+    ]
+  },
+  "generated": "2026-08-04T03:13:09+00:00",
+  "git_commit": "e5bd815",
+  "notes": {
+    "input_bouts": 537
+  },
+  "question_id": "bouts1",
+  "tokens": {
+    "CONTEXT_CORRELATIONS": "| variable | rho_raw | p_raw | rho_demeaned | p_demeaned |\n|---|---|---|---|---|\n| time_frac | -0.005 | 0.914 | 0.030 | 0.489 |\n| duration_s | 0.055 | 0.203 | -0.056 | 0.193 |",
+    "CONTEXT_MAX_ABS_RHO": "0.055",
+    "ENTERED_FROM_OTHER_N": "6",
+    "ENTERED_FROM_TOP": "Non-REM",
+    "ENTERED_FROM_TOP_N": "531",
+    "EXIT_BETA_FIXED": "-0.032",
+    "EXIT_BETA_RAW": "-0.499",
+    "EXIT_COUNTS": "| next_state | count |\n|---|---|\n| Awake | 456 |\n| Non-REM | 81 |",
+    "EXIT_MODELS": "| model | beta | p |\n|---|---|---|\n| raw | -0.499 | 0.000 |\n| group_random | -0.053 | 0.498 |\n| group_fixed | -0.032 | 0.677 |",
+    "EXIT_P_FIXED": "0.68",
+    "EXIT_P_RAW": "7.4e-06",
+    "MINORITY_BY_MOUSE": "| mouse | count |\n|---|---|\n| 12 | 9 |\n| 17 | 42 |\n| 20 | 27 |\n| 24 | 3 |",
+    "MINORITY_MICE": "4",
+    "NAMED_MAX_RATIO": "0.16",
+    "NAMED_SESSIONS": "| session | cells | n_Awake | median_Awake | n_other | median_other | ratio | p |\n|---|---|---|---|---|---|---|---|\n| Mouse12-120808 | 39 | 10 | 1.26 | 4 | 1.31 | 1.04 | 0.84 |\n| Mouse17-130129 | 25 | 12 | 1.40 | 7 | 1.65 | 1.18 | 0.77 |\n| Mouse20-130515 | 6 | 10 | 4.88 | 8 | 4.88 | 1.00 | 0.83 |",
+    "N_BOUTS": "537",
+    "PAIRED_MEDIAN_DIFF": "0.121",
+    "PAIRED_N_HIGHER": "9",
+    "PAIRED_P": "0.45",
+    "PAIRED_SESSIONS": "13",
+    "PAIRED_SESSIONS_TOTAL": "32",
+    "TOTAL_MICE": "6"
+  }
+}
