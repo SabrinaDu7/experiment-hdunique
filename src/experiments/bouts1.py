@@ -33,8 +33,8 @@ class Config:
 
 def collect(*, cfg: Config) -> None:
     """Build the per-bout table this question needs (delegates to the bout sweep)."""
-    from cli.bout_diffusion import BoutConfig
-    from cli.bout_diffusion import run as run_bouts
+    from collect.bouts import BoutConfig
+    from collect.bouts import run as run_bouts
 
     run_bouts(cfg=BoutConfig(cell_set=cfg.cell_set))
 

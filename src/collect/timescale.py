@@ -1,6 +1,6 @@
 """Entry point for the long-timescale diffusion comparison: D at 200 ms, 500 ms and 5 s.
 
-    uv run hd-timescale                      # every cached run, ADn
+    Called by an experiment's collect(); not a console script.
     uv run hd-timescale --cell-set PoS
     uv run hd-timescale --no-make-plot
 
@@ -16,7 +16,6 @@ import dataclasses
 
 import numpy as np
 import pandas as pd
-import tyro
 
 import diffusion as dif
 import plotting
@@ -160,11 +159,3 @@ def run(*, cfg: TimescaleConfig) -> None:
                 / f"Mouse{mouse}_timescale_msd_{cfg.cell_set}.png",
             )
 
-
-def main() -> None:
-    """Console-script entry point for `hd-timescale`."""
-    run(cfg=tyro.cli(TimescaleConfig))
-
-
-if __name__ == "__main__":
-    main()

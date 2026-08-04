@@ -20,7 +20,7 @@ QUESTION_IDS: tuple[str, ...] = (
 
 #: Questions whose module is not written yet. Listed so `hd-exp list` reports them as planned
 #: rather than crashing, and so the registry stays the single record of what exists.
-PLANNED: frozenset[str] = frozenset({"diffusion1", "diffusion2"})
+PLANNED: frozenset[str] = frozenset()
 
 
 def load(question_id: str) -> ModuleType:

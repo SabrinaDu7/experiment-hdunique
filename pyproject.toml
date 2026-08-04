@@ -32,12 +32,6 @@ dependencies = [
 [project.scripts]
 hd-exp = "cli.exp:main"
 hd-diffusion = "cli.diffusion:main"
-hd-bouts = "cli.bout_diffusion:main"
-hd-cellset-strip = "cli.cellset_strip:main"
-hd-diffusion-grid = "cli.diffusion_grid:main"
-hd-timescale = "cli.timescale:main"
-hd-variance = "cli.variance:main"
-hd-variance-by-window = "cli.variance_by_window:main"
 
 [tool.ruff]
 line-length = 100

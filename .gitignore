@@ -2,22 +2,22 @@
 .venv/
 __pycache__/
 *.pyc
+.ruff_cache/
 
-# Results. The parquets ARE the artefact; the decode cache is shipped too (~22 MB) so that
-# --recompute-only and the figure commands work on a fresh clone without the multi-hour sweep.
-# Figures are regenerable from those in seconds, so they are not tracked.
+# outputs/: the decode cache is shipped (~22 MB) so a fresh clone can run every analysis without
+# the multi-hour sweep. Result tables, the values files the docs render from, and the figures the
+# docs link to are all tracked. Nothing else under outputs/ is.
 outputs/*
+!outputs/cache/
 !outputs/results/
 outputs/results/*
 !outputs/results/*.parquet
 !outputs/results/*.csv
-!outputs/results/cache/
+!outputs/results/*.json
+!outputs/figures/
+outputs/figures/*
+!outputs/figures/*.png
 
 # Scratch space for quick one-offs; the .gitkeep is tracked, nothing else is.
 throwaway/*
 !throwaway/.gitkeep
-
-# Generated results docs and the values they render from ARE tracked; figures too, since the
-# generated .md files link to them.
-!outputs/results/*.json
-!outputs/figures/

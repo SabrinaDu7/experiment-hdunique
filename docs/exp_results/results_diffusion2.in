@@ -1,0 +1,93 @@
+# diffusion2 — results
+
+> **Question.** `diffusion1` finds the decoded angle is sub-diffusive at long lags. Is that the
+> head-direction system, or is it our instrument?
+
+Methods: [`instructions-diffusion2.md`](../exp_instructions/instructions-diffusion2.md).
+
+**@N_SESSIONS@ sessions.** α = 1 means "free walk"; anything less was manufactured somewhere.
+
+---
+
+## diffusion2_exp1 — a known-free walk through the same machinery
+
+| stage | median α |
+|---|---|
+| free walk, before decoding | **@ALPHA_TRUTH@** |
+| free walk, points exactly on the ring | @ALPHA_CLEAN@ |
+| free walk + realistic off-ring noise | **@ALPHA_NOISY@** |
+| **real data** | **@ALPHA_REAL@** |
+
+How the shortfall from a free walk divides:
+
+| source | contribution |
+|---|---|
+| estimator blindness | @LOSS_ESTIMATOR@ |
+| decoder / off-ring noise | @LOSS_DECODER@ |
+| **dynamics (unexplained)** | **@LOSS_DYNAMICS@** |
+
+The estimator fails in only **@N_ESTIMATOR_BLIND@ of @N_SESSIONS@** sessions
+(@ESTIMATOR_BLIND_SESSIONS@):
+
+@BLIND_TABLE@
+
+**Deficit** — real data against a free walk through the *same* decoder, at the *same* speed, with
+the *same* bout structure:
+
+- median **@DEFICIT_MEDIAN@**, IQR @DEFICIT_LO@ to @DEFICIT_HI@
+- negative in **@DEFICIT_N_NEGATIVE@ of @N_SESSIONS@** sessions, p = @DEFICIT_P@
+- independent of cell count (ρ = @DEFICIT_CELLS_RHO@, p = @DEFICIT_CELLS_P@) and of speed
+  (ρ = @DEFICIT_SPEED_RHO@, p = @DEFICIT_SPEED_P@)
+
+Restricted to the **@N_HONEST@ sessions where the machinery is verified honest** on both counts:
+deficit **@HONEST_DEFICIT_MEDIAN@**, negative in @HONEST_N_NEGATIVE@ of @N_HONEST@,
+p = @HONEST_P@.
+
+@PER_SESSION@
+
+### Interpretation
+
+**The ring parameterisation is innocent.** `clean` ≈ `truth` everywhere: placing points exactly on
+the fitted curve and decoding them recovers the walk. Uneven arc-length sampling — the most obvious
+way a spline ring could fake attraction — is not happening.
+
+**The estimator is honest almost everywhere.** It fails only in the two thinnest, fastest sessions,
+where the angle has fully decorrelated by 5 s and no estimator could recover a rate. Elsewhere a
+free walk comes back as free.
+
+**Projection noise matters, but is not the whole story**, and the residual deficit is
+**independent of both cell count and speed** — so it is not a recording-quality artefact wearing a
+different hat.
+
+**A real effect survives all three.** The deficit is negative in almost every session and in every
+one of the @N_HONEST@ sessions where the machinery is verified clean.
+
+---
+
+## Answer to the question
+
+**Mostly the brain, but the raw number badly overstated it.**
+
+The decoded angle is genuinely sub-diffusive: something restores the bump toward preferred
+directions during REM, when there is no vestibular input to anchor it to. But the honest effect size
+is the deficit against a matched free walk — about @HONEST_DEFICIT_MEDIAN@ — not the raw α ≈
+@ALPHA_REAL@, which conflates dynamics with a decoder that costs @LOSS_DECODER@ on its own.
+
+⚠️ **Treat @HONEST_DEFICIT_MEDIAN@ as an upper bound.** Off-ring residuals are resampled i.i.d.,
+which destroys their temporal correlation and so flatters the decoder. Real off-ring excursions
+likely come in runs, which would make the decoder more damaging and the true deficit smaller.
+
+## How to reproduce
+
+```bash
+uv run hd-exp collect diffusion2     # ~20 min
+uv run hd-exp run     diffusion2
+uv run hd-exp check   diffusion2
+```
+
+## Next steps
+
+- **Block-resample the residuals** before quoting the effect size. Small change, and it is the one
+  caveat standing between this and a firm number.
+- A full end-to-end synthetic, simulating spikes from tuning curves rather than starting at the
+  embedding, would additionally test rate estimation and Isomap.

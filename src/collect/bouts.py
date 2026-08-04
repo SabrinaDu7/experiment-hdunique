@@ -1,6 +1,6 @@
 """Entry point for per-bout REM diffusion constants.
 
-    uv run hd-bouts                                     # every cached ADn session
+    Called by an experiment's collect(); not a console script.
     uv run hd-bouts --sessions 25-140130 28-140313 12-120806
     uv run hd-bouts --merge-gap-s 20                    # merge REM bouts closer than 20 s
 
@@ -16,7 +16,6 @@ import dataclasses
 
 import numpy as np
 import pandas as pd
-import tyro
 
 import bouts
 import loader
@@ -147,11 +146,3 @@ def run(*, cfg: BoutConfig) -> None:
         frame.to_parquet(path, index=False)
         print(f"  -> {len(frame)} bouts in {path.name}")
 
-
-def main() -> None:
-    """Console-script entry point for `hd-bouts`."""
-    run(cfg=tyro.cli(BoutConfig))
-
-
-if __name__ == "__main__":
-    main()

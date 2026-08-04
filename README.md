@@ -51,54 +51,57 @@ Full instructions, including quicker subsets and the diagnostic runs, are in
 
 ## Repository structure
 
+**One scientific question is the unit of work.** Each has an id (`diffusion1`), an instructions doc
+stating the question and its methods, a results doc generated from a template, and a thin experiment
+module. `uv run hd-exp list` enumerates them.
+
 ```
-src/
-  spud/          Vendored analysis code from Chaudhuri et al. (2019), kept as the authors wrote it
-                 so it can be diffed against upstream. Exempt from this repo's style rules.
-                 angle_fns, dim_red_fns, fit_helper_fns, manifold_fit_and_decode_fns, kernel_rates
-
-  hdunique/      The pipeline. One flat module per stage, and nothing does I/O at import.
-    env.py         Where data comes from and results go (the DANDI_DATA_ROOT / OUTPUT_PATH contract)
-    config.py      DiffusionConfig, VarianceGateConfig / VarianceConfig and the shared constants.
-                   Every default is the setting that produced the published results.
-    loader.py      DANDI/pynapple: sessions, spikes, REM epochs, cell selection by brain area
-    rates.py       Sum-of-Gaussians firing rates, computed per REM bout
-    manifold.py    Isomap embedding, the 12-knot ring fit, and the per-refit decode
-    diffusion.py   The diffusion curve, the origin-forced fit and its bootstrap — the estimator
-    timescale.py   Long-lag diffusion: the three wrapping-aware estimators and their diagnostics
-    sweep.py       One session -> one result row; the CacheEntry record and the parquet tables
-    variance.py    The random-intercept LMM, its bootstrap, and the ANOVA cross-check
-    plotting.py    Every figure, plus the DiffusionPanel record both diffusion figures draw
-    cli/           Entry points. Each is argument parsing and reporting only; the science is above.
-      diffusion.py          -> hd-diffusion
-      diffusion_grid.py     -> hd-diffusion-grid
-      timescale.py          -> hd-timescale
-      cellset_strip.py      -> hd-cellset-strip
-      variance.py           -> hd-variance
-      variance_by_window.py -> hd-variance-by-window
-
 docs/
-  methods.md     The paper's specification, and every deliberate departure from it
-  porting/       How the pipeline got here from the predecessor repo, and its results:
-                 the port record, REPRODUCING.md, results-rem-diffusion.md,
-                 results-variance-decomposition.md
-  long_D/        How D depends on the measurement window (200 ms / 500 ms / 5 s),
-                 the circular-wrapping treatment, and REPRODUCING-timescale.md
-scripts/         Provenance tools that are not part of the pipeline: migrate_cache.py (how the
-                 shipped decode cache got here) and verify_cache.py (the cold recompute that
-                 validates it). Tracked, because the port record cites them as evidence.
-throwaway/       Scratch space for quick one-offs that need not live anywhere permanent (untracked)
-outputs/results/ Parquets and the decode cache (tracked), figures (not tracked)
+  exp_instructions/instructions-<qid>.md    the question, its motivation, its methods
+  exp_results/results_<qid>.in              hand-written template: prose + @TOKEN@
+  exp_results/results_<qid>.md              GENERATED — never edit; edit the .in
+  methods.md                                the paper's spec and our departures from it
+  porting/ long_D/ bout_level/              historical narrative records
+src/
+  config.py env.py                          constants; where data and outputs live
+  loader.py rates.py manifold.py            DANDI -> rates -> Isomap -> ring
+  diffusion.py timescale.py bouts.py        the estimators
+  variance.py sweep.py                      the mixed model; the cache and parquet plumbing
+  analysis/    io, curves, stats, values, render   reusable primitives
+  figures/     base, strips, curves               one panel grammar per figure type
+  collect/     timescale, bouts                   sweeps that build per-session tables
+  experiments/ <qid>.py + registry                one module per question
+  cli/         exp.py (hd-exp), diffusion.py (hd-diffusion)
+  spud/        vendored code from Chaudhuri et al. (2019), unchanged
+scripts/       provenance tools: migrate_cache, verify_cache, synthetic_ring_control
+tests/
+outputs/
+  cache/       decode cache (tracked, ~22 MB) — lets a fresh clone run every analysis
+  results/     per-session tables and <qid>_values.json
+  figures/     <qid>_<description>.png
 ```
 
-`hdunique/` is eleven modules, so it is deliberately **flat**: an `io/` or `analysis/` subpackage
-would add import depth without removing a single decision about where code goes. `cli/` is the one
-subpackage that earns its keep, because it is the only group with a shared contract (each module
-exposes `run(cfg=...)` plus a `main()` console script).
+Only two console scripts survive: **`hd-diffusion`**, the one expensive collector (NWB → cache), and
+**`hd-exp`**, which runs everything else. Analyses that used to be separate CLIs are now experiments
+sharing the primitives in `analysis/` and `figures/`.
 
-The dependency order is strictly one-way: `cli/ → sweep, variance → diffusion, manifold, rates →
-loader, config, env → spud`. Nothing in `hdunique/` is imported by `spud/`, and `scripts/` imports
-`hdunique/` but nothing imports `scripts/`.
+### How a question runs
+
+```bash
+uv run hd-exp list                  # what exists
+uv run hd-exp collect diffusion1    # only for questions needing new tables
+uv run hd-exp run     diffusion1    # analyse + render
+uv run hd-exp check   diffusion1    # recompute and diff against committed values
+```
+
+`analyse` writes named values plus provenance (resolved config, git commit, timestamp) to
+`<qid>_values.json`; `render` substitutes them into the `.in`. **An unresolved token is a hard
+error**, so a results file cannot render with a gap, and re-running an analysis cannot overwrite
+prose.
+
+> **Note on imports.** Modules are top-level names (`config`, `env`, `loader`), so an inherited
+> `PYTHONPATH` from another checkout can shadow them. Nothing here needs `PYTHONPATH`; `env.py`
+> raises with an explanation if it detects the shadow.
 
 ### Where the results live
 

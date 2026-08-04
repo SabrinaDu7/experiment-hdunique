@@ -1,0 +1,99 @@
+# diffusion1 — results
+
+> **Question.** *D* is defined as the slope of ⟨Δα²⟩ against lag, fitted over the first 200 ms.
+> Does the answer change if the same quantity is measured over 500 ms, or 5 s?
+
+Methods: [`instructions-diffusion1.md`](../exp_instructions/instructions-diffusion1.md).
+
+**@N_SESSIONS@ ADn sessions.** All values from the `circular` estimator unless stated.
+
+---
+
+## diffusion1_exp1 — D at every window
+
+@WINDOW_TABLE@
+
+- @REFERENCE_MS@ ms → 500 ms: ratio **@SHORT_RATIO_MEDIAN@** (median)
+- @REFERENCE_MS@ ms → @LONGEST_MS@ ms: ratio **@LONGEST_RATIO_MEDIAN@**, IQR
+  @LONGEST_RATIO_LO@–@LONGEST_RATIO_HI@
+- correlation between a session's speed and how far it falls: ρ = **@SPEED_RATIO_RHO@**
+  (p = @SPEED_RATIO_P@)
+
+The dimensionless shape of the curve, which no multiplicative estimator bias can affect:
+
+| estimator | α over 0.1–0.5 s | α over 1–5 s |
+|---|---|---|
+| `wrapped` | @ALPHA_SHORT_WRAPPED@ | @ALPHA_LONG_WRAPPED@ |
+| `circular` | **@ALPHA_SHORT@** | **@ALPHA_LONG@** |
+
+Wrapping, for context: the naive estimator has run to a median **@SATURATION_MEDIAN@** of its own
+π²/3 ceiling by the longest lag (worst @SATURATION_MAX@). Surviving angular correlation at that lag
+spans @RESULTANT_MIN@–@RESULTANT_MAX@, so the circular estimator is still sensitive throughout.
+
+@PER_SESSION@
+
+### Interpretation
+
+**200 ms and 500 ms are the same measurement.** A ratio of @SHORT_RATIO_MEDIAN@ means anyone
+choosing between those two windows is choosing between equivalent numbers.
+
+**5 s is not.** *D* falls to about a third of its short-window value, and **the fall tracks how fast
+the session was to begin with** (ρ = @SPEED_RATIO_RHO@) — exactly what is expected if the cause is
+the angle exploring an appreciable fraction of the ring.
+
+Both estimators agree on the shape: **near-diffusive at short lag (α ≈ @ALPHA_SHORT@), clearly
+sub-diffusive by 1–5 s (α ≈ @ALPHA_LONG@)**. That is the finding that does not depend on which
+circumvention you trust, and it is the one worth carrying forward.
+
+What this does *not* establish is why. See `diffusion2`.
+
+## diffusion1_exp2 — split by cell set
+
+@CELLSET_TABLE@
+
+@FIG_CELLSET_1000@
+
+@FIG_CELLSET_5000@
+
+### Interpretation
+
+**The cell sets converge as the window lengthens.** PoS sits @POS_OVER_ADN_200@× above ADn at
+@REFERENCE_MS@ ms and only @POS_OVER_ADN_5000@× above it at @LONGEST_MS@ ms.
+
+That is what a shared ceiling looks like. Once every trace has explored much of the ring, the
+measurement is reporting the size of the ring rather than the quality of the decode, so a
+near-noise cell set and a good one start to look alike. **It is not evidence that PoS improves at
+long lags** — it is evidence that the measurement loses the ability to tell them apart, which is a
+reason to distrust long-window comparisons between recordings of different quality.
+
+Within-set spread collapses for the same reason: the ADn IQR of log *D* falls from
+@ADN_IQR_SHORT@ at @REFERENCE_MS@ ms to @ADN_IQR_LONG@ at @LONGEST_MS@ ms. **The between-session
+differences that `variance1` and `variance2` are built on are largely a short-timescale
+phenomenon.**
+
+---
+
+## Answer to the question
+
+**Yes, and materially.** *D* is stable between 200 ms and 500 ms and roughly a third of its
+short-window value by 5 s. So *D* is not a single number: quoting one requires quoting the window,
+and 200 ms and 5 s are measuring genuinely different things.
+
+The process is diffusive on the timescale the paper measures and sub-diffusive on the timescale of
+seconds. Whether that reflects the circuit or the instrument is `diffusion2`.
+
+## How to reproduce
+
+```bash
+uv run hd-exp collect diffusion1
+uv run hd-exp run     diffusion1
+uv run hd-exp check   diffusion1
+```
+
+## Next steps
+
+- The `circular` estimator under-reads at short lags because the displacement is leptokurtic there,
+  which inflates the measured ratio. The reported fall is therefore a conservative bound; the true
+  fall is steeper.
+- Long-window comparisons across recordings of different quality should be treated with suspicion
+  given the convergence shown in exp2.
