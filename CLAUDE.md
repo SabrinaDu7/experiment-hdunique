@@ -23,7 +23,7 @@
 
 | Path | What lives there | Who writes it |
 |---|---|---|
-| `docs/exp_instructions/instructions-<qid>.md` | the question, its motivation, its experiments, its methods with code pointers | **you, by hand** |
+| `docs/exp_instructions/instructions-<qid>.md` | the question, its motivation, its experiments, its methods with code pointers | **you, agent-assisted** |
 | `docs/exp_results/results_<qid>.in` | the results **template**: all prose and interpretation, with `@TOKEN@` where numbers go | **you, by hand** |
 | `docs/exp_results/results_<qid>.md` | the rendered document | **generated — never edit** |
 | `src/experiments/<qid>.py` | `Config`, optional `collect()`, `analyse()` | you |

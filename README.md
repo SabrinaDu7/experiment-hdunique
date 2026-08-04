@@ -34,7 +34,7 @@ an experiment module.
 
 | If you want to… | Read |
 |---|---|
-| **Add or change an experiment** | [`CLAUDE.md`](./CLAUDE.md) — the workflow, where files go, the rules |
+| **Add or change an experiment** | [`CLAUDE.md`](./CLAUDE.md) — experiment workflow, where files go, the rules |
 | See what questions exist | `uv run hd-exp list` |
 | Read a question's methods | `docs/exp_instructions/instructions-<qid>.md` |
 | Read a question's results | `docs/exp_results/results_<qid>.md` |
