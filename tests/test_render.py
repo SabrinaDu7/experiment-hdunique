@@ -1,0 +1,75 @@
+"""The render step is what stands between an analysis and a published number, so its failure
+modes matter more than its happy path: a missing value must stop the build, not leave a gap."""
+
+import json
+from pathlib import Path
+
+import pandas as pd
+import pytest
+
+from analysis.render import render
+from analysis.values import Values
+
+
+def _values(**tokens: str) -> dict:
+    return {"question_id": "q1", "generated": "2026-08-04T00:00:00+00:00",
+            "git_commit": "abc1234", "config": {"cell_set": "ADn"}, "notes": {}, "tokens": tokens}
+
+
+def _docs(tmp_path: Path, template: str) -> Path:
+    (tmp_path / "exp_results").mkdir(parents=True)
+    (tmp_path / "exp_results" / "results_q1.in").write_text(template)
+    return tmp_path
+
+
+def test_substitutes_tokens_and_dates_the_file(tmp_path: Path) -> None:
+    docs = _docs(tmp_path, "# Q1\n\nMedian was @D_MEDIAN@ rad^2/s.\n")
+    out = render(question_id="q1", values=_values(D_MEDIAN="0.90"), docs_root=docs)
+    text = out.read_text()
+    assert text.splitlines()[0].count("-") == 2, "first line must be the generation date"
+    assert "Median was 0.90 rad^2/s." in text
+    assert "@D_MEDIAN@" not in text
+
+
+def test_missing_token_is_an_error(tmp_path: Path) -> None:
+    docs = _docs(tmp_path, "Median @D_MEDIAN@, spread @D_IQR@.\n")
+    with pytest.raises(KeyError, match="D_IQR"):
+        render(question_id="q1", values=_values(D_MEDIAN="0.90"), docs_root=docs)
+
+
+def test_missing_template_is_an_error(tmp_path: Path) -> None:
+    (tmp_path / "exp_results").mkdir(parents=True)
+    with pytest.raises(FileNotFoundError, match="results_q1.in"):
+        render(question_id="q1", values=_values(), docs_root=tmp_path)
+
+
+def test_provenance_records_the_config(tmp_path: Path) -> None:
+    docs = _docs(tmp_path, "# Q1\n")
+    text = render(question_id="q1", values=_values(), docs_root=docs).read_text()
+    assert "`cell_set`" in text and "`ADn`" in text
+    assert "abc1234" in text
+
+
+def test_generated_banner_warns_against_editing(tmp_path: Path) -> None:
+    docs = _docs(tmp_path, "# Q1\n")
+    assert "do not edit" in render(question_id="q1", values=_values(), docs_root=docs).read_text()
+
+
+def test_values_rejects_duplicate_token() -> None:
+    v = Values(question_id="q1", config={})
+    v.scalar("A", 1.0)
+    with pytest.raises(KeyError, match="twice"):
+        v.scalar("A", 2.0)
+
+
+def test_values_table_renders_markdown() -> None:
+    v = Values(question_id="q1", config={})
+    v.table("T", pd.DataFrame({"mouse": [12, 17], "D": [0.5, 1.25]}), floatfmt=".2f")
+    assert "| mouse | D |" in v.tokens["T"]
+    assert "| 12 | 0.50 |" in v.tokens["T"]
+
+
+def test_values_roundtrip_is_json_safe() -> None:
+    v = Values(question_id="q1", config={"windows": [200, 500]})
+    v.scalar("A", 1.0)
+    assert json.loads(json.dumps(v.to_dict()))["tokens"]["A"] == "1.000"

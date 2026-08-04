@@ -16,3 +16,8 @@ outputs/results/*
 # Scratch space for quick one-offs; the .gitkeep is tracked, nothing else is.
 throwaway/*
 !throwaway/.gitkeep
+
+# Generated results docs and the values they render from ARE tracked; figures too, since the
+# generated .md files link to them.
+!outputs/results/*.json
+!outputs/figures/

@@ -1,0 +1,117 @@
+# variance1 — results
+
+> **Question.** Each mouse contributes several REM sessions, each with one diffusion constant *D*.
+> Is the spread in *D* driven more by **which animal** it came from, or by **which session** of that
+> animal?
+
+Methods and rationale: [`instructions-variance1.md`](../exp_instructions/instructions-variance1.md).
+
+---
+
+## variance1_exp1 — ICC by cell-count gate
+
+@GATE_TABLE@
+
+At the headline gate (≥15 ADn cells): **@HEADLINE_SESSIONS@ sessions across @HEADLINE_MICE@ mice**,
+τ² = @HEADLINE_TAU2@, σ² = @HEADLINE_SIGMA2@, **ICC = @HEADLINE_ICC@**, 95 % CI
+[@HEADLINE_ICC_LO@, @HEADLINE_ICC_HI@]. The one-way ANOVA cross-check gives @HEADLINE_ANOVA_ICC@.
+
+Per-mouse shrunken estimates:
+
+@PER_MOUSE_EFFECTS@
+
+### Interpretation
+
+**The ICC point estimate is not the finding; its interval is.** The ICC sits around 0.6, which taken
+alone would say mouse identity explains most of the variance. But the confidence interval reaches
+essentially to zero, so the data are also consistent with mouse identity explaining *none* of it.
+
+The ANOVA cross-check agreeing to within ~0.01 matters here: it says the decomposition itself is
+sound, so the width is sampling uncertainty rather than a broken estimator. With ~6 mice, τ² is
+estimated from 5 degrees of freedom no matter how many sessions feed it — **more sessions cannot
+fix this; only more mice can.**
+
+Note also that the lower bound sitting at zero is partly a small-group boundary effect: bootstrap
+replicates pile up on τ² = 0. That is not evidence *for* τ² = 0, so the null should not be
+over-read in either direction.
+
+## variance1_exp2 — does the fit window change the answer?
+
+@WINDOW_TABLE@
+
+ICC ranges from @WINDOW_ICC_MIN@ to @WINDOW_ICC_MAX@ across the four windows.
+
+### Interpretation
+
+Both variance components shrink as the window widens — *D* saturates, so its spread compresses —
+but their **ratio is flat**. The decomposition is therefore not an artefact of which window's *D*
+is decomposed. The window choice rescales the absolute variances and leaves the question of
+between- versus within-mouse untouched.
+
+## variance1_exp3 — does the mouse effect survive matching on cell count?
+
+Restricted to sessions with **@MATCHED_BAND@ ADn cells**: @MATCHED_SESSIONS@ sessions,
+@MATCHED_MICE@ mice.
+
+@MATCHED_PER_MOUSE@
+
+- **ICC = @MATCHED_ICC@**, 95 % CI [@MATCHED_ICC_LO@, @MATCHED_ICC_HI@] (ANOVA @MATCHED_ANOVA_ICC@)
+- **Kruskal-Wallis across mice: p = @MATCHED_KRUSKAL_P@**
+- Spread in median *D* across mice: **@MATCHED_D_SPREAD@×**
+- Correlation between cell count and *D* within the band: ρ = @MATCHED_CELLS_D_RHO@
+
+### Interpretation
+
+**The between-mouse difference survives matching, and strengthens.** Within a narrow cell-count
+band the mice still differ several-fold in median *D*, the difference is significant by
+Kruskal-Wallis, and the ICC is if anything higher than on the full data — while the correlation
+between cell count and *D* has collapsed, confirming the confound really was removed.
+
+This is the experiment that rescues the mouse effect from a pessimistic reading. Correcting *D* for
+continuous decode-quality measures (ring scatter, refit spread) appears to abolish the between-mouse
+variance entirely — but those measures are partly **downstream** of *D*, because a fast-drifting
+bump is harder to track. Matching on cell count, which is fixed by the implant and cannot be caused
+by the dynamics, is the honest control, and it leaves the effect standing.
+
+---
+
+## Answer to the question
+
+**Two different questions were being asked at once, and they have different answers.**
+
+*Do mice differ?* — **Yes, with support.** At matched cell count the difference is several-fold and
+significant (p = @MATCHED_KRUSKAL_P@), and it is not explained by the most obvious recording
+confound.
+
+*Is between-mouse variance larger than within-mouse variance?* — **Not answerable here.** The ICC
+lands around @HEADLINE_ICC@ but its interval spans almost the whole range at every gate and every
+fit window. That is a power limit set by having ~6 mice, and no gate, estimator or additional
+session repairs it.
+
+The defensible summary is therefore: *mouse identity matters, but this dataset cannot say how much
+of the variance it accounts for.*
+
+## How to reproduce
+
+```bash
+uv run hd-diffusion --scope all      # only if outputs/results/diffusion_Mouse*.parquet is absent
+uv run hd-exp run variance1
+```
+
+Variants:
+
+```bash
+uv run hd-exp run variance1 --estimator D            # the other co-headline estimate of D
+uv run hd-exp run variance1 --headline-gate 20
+uv run hd-exp run variance1 --matched-band 16 26
+uv run hd-exp check variance1                        # re-run and diff against committed values
+```
+
+## Next steps
+
+- **More mice is the only fix** for the ICC's interval. Failing that, reframe at the bout level
+  where n is in the hundreds — see `variance2`.
+- The matched-band result rests on 5 mice, one of which contributes a single session. Worth
+  repeating with a minimum session count per mouse.
+- Decode quality is confounded with the implant. A quality measure genuinely independent of both
+  cell count and the dynamics would let this be tested directly rather than by matching.

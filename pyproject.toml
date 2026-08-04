@@ -30,6 +30,7 @@ dependencies = [
 ]
 
 [project.scripts]
+hd-exp = "cli.exp:main"
 hd-diffusion = "cli.diffusion:main"
 hd-bouts = "cli.bout_diffusion:main"
 hd-cellset-strip = "cli.cellset_strip:main"
