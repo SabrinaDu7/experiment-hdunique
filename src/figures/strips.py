@@ -54,6 +54,7 @@ def strip_panel(
     well_sampled: int = 20,
     seed: int = 0,
     statistic: str = "mean",
+    label_prefix: str = "",
 ) -> None:
     """One panel: every observation as a jittered dot, each group's centre as a bar.
 
@@ -80,7 +81,9 @@ def strip_panel(
 
     if len(frame):
         ax.axhline(frame[value].mean(), ls="--", color="0.55", lw=1.0, zorder=1)
-    ax.set_xticks(range(len(order)), [str(k) for k in order], rotation=45, ha="right")
+    ax.set_xticks(
+        range(len(order)), [f"{label_prefix}{k}" for k in order], rotation=45, ha="right"
+    )
     ax.set_xlim(-0.6, len(order) - 0.4)
 
 
@@ -94,6 +97,7 @@ def plot_grouped_strip(
     count_col: str | None = "n_cells",
     well_sampled: int = 20,
     statistic: str = "mean",
+    label_prefix: str = "",
 ) -> Path:
     """One strip panel per entry in `panels`, sharing a single log-D axis.
 
@@ -112,7 +116,8 @@ def plot_grouped_strip(
     )
     for ax, (name, frame) in zip(axes[0], panels.items(), strict=True):
         strip_panel(ax=ax, frame=frame, group=group, order=order, colors=colors, value=value,
-                    count_col=count_col, well_sampled=well_sampled, statistic=statistic)
+                    count_col=count_col, well_sampled=well_sampled, statistic=statistic,
+                    label_prefix=label_prefix)
         ax.set_title(f"{name}  (n = {len(frame)})", fontsize=10, loc="left")
 
     axes[0][0].set_ylabel("D (rad²/s, log scale)")

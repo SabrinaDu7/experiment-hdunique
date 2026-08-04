@@ -33,8 +33,10 @@ class Config:
     estimator: str = "circular"
     #: Cell sets compared in exp2.
     cell_sets: tuple[str, ...] = ("ADn", "ADn+PoS", "PoS")
-    #: Windows drawn as strip figures in exp2.
-    figure_windows_ms: tuple[int, ...] = (1000, 3000, 5000)
+    #: Windows shown side by side in the exp1 figure, on the analysis cell set alone.
+    figure_windows_ms: tuple[int, ...] = (200, 1000, 5000)
+    #: Windows given their own by-cell-set figure in exp2.
+    cellset_figure_windows_ms: tuple[int, ...] = (1000, 5000)
     dt: float = 0.1
     #: Below this cell count a session is drawn with an open marker.
     well_sampled: int = 20
@@ -115,6 +117,27 @@ def analyse(*, cfg: Config, values: Values) -> None:
     per_session["ratio"] = ratio
     values.table("PER_SESSION", per_session.sort_values("ratio"), floatfmt=".3f")
 
+    # Every session's D at each window, side by side on one axis. The panels share a D scale, so
+    # the compression from short to long windows is the thing the figure shows.
+    windows = {
+        f"{w / 1000:g} s" if w >= 1000 else f"{w} ms": io.with_log_d(frame=frame, column=f"D_{w}")
+        for w in cfg.figure_windows_ms
+    }
+    path = figures_dir() / f"{QUESTION_ID}_exp1_windows_{cfg.cell_set}.png"
+    plot_grouped_strip(
+        panels=windows,
+        group="mouse",
+        title=f"REM diffusion by measurement window ({cfg.cell_set} only, "
+              f"{cfg.estimator} estimator)",
+        well_sampled=cfg.well_sampled,
+        label_prefix="Mouse",
+        save_path=path,
+    )
+    values.figure(
+        "FIG_WINDOWS", path,
+        caption=f"D at each measurement window, {cfg.cell_set} cells only",
+    )
+
     # --- exp2: the same windows, split by cell set ---
     frames = {}
     for cell_set in cfg.cell_sets:
@@ -147,17 +170,21 @@ def analyse(*, cfg: Config, values: Values) -> None:
         fmt=".2f",
     )
 
-    for window_ms in cfg.figure_windows_ms:
+    for window_ms in cfg.cellset_figure_windows_ms:
         panels = {
             cs: io.with_log_d(frame=sub, column=f"D_{window_ms}") for cs, sub in frames.items()
         }
-        path = figures_dir() / f"{QUESTION_ID}_cellset_{window_ms}ms.png"
+        path = figures_dir() / f"{QUESTION_ID}_exp2_cellset_{window_ms}ms.png"
         plot_grouped_strip(
             panels=panels,
             group="mouse",
             title=f"REM diffusion by cell set — {window_ms / 1000:g} s window "
                   f"({cfg.estimator} estimator)",
             well_sampled=cfg.well_sampled,
+            label_prefix="Mouse",
             save_path=path,
         )
-        values.figure(f"FIG_CELLSET_{window_ms}", path, caption=f"{window_ms} ms window")
+        values.figure(
+            f"FIG_CELLSET_{window_ms}", path,
+            caption=f"D by cell set, {window_ms / 1000:g} s window",
+        )

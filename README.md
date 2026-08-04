@@ -1,7 +1,24 @@
 # experiment-hdunique
 
-**How fast does the head-direction system's internal compass drift during REM sleep, and how much
-of that drift is a property of the animal rather than the recording session?**
+This is a repo aimed at testing the following hypothesis:
+- What we see during REM sleep is intrinsic, it’s not plastic; it reflects internal dynamics that are UNIQUE to an animal.
+- The only thing that can explain the REM sleep activity variance is animal identity. Nothing else.
+
+
+To test this hypothesis, we need to answer the following questions:
+1. Q1: Do population and cell-level metrics vary more between animals or within animals (ie within sessions)?
+2. Q2: Do population and cell-level metrics vary more between animals when they are in REM versus in wake (to isolate REM from just animal activity in general). *[04-08-2026: Currently no experiments]*
+
+To answer Q1, we are analyzing REM activity across metrics, animals, and datasets.
+| Datasets | Animals | Metrics |
+| -------- | -------- | -------- |
+| Peyrache et al. 2015  | 7  | REM diffusion constant  |
+| xx  | xx  | xx  |
+
+## Metrics
+- Population-level:
+  - **REM Diffusion Constant**: How fast does the head-direction system's internal compass drift during REM sleep, and how much of that drift is a property of the animal rather than the recording session?
+- Cell-level:
 
 This repo decodes head direction from anterodorsal thalamic (ADn) population activity during REM
 sleep without using any measured head angle, measures the diffusion constant *D* of the decoded

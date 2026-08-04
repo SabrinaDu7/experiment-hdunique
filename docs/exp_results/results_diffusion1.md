@@ -77,6 +77,13 @@ spans 0.164–0.652, so the circular estimator is still sensitive throughout.
 | Mouse12-120810 | 44 | 0.377 | 0.344 | 0.912 |
 | Mouse28-140313 | 24 | 0.261 | 0.282 | 1.082 |
 
+**Figure — D at each measurement window, ADn cells only** (`diffusion1_exp1_windows_ADn.png`)
+
+![D at each measurement window, ADn cells only](../../outputs/figures/diffusion1_exp1_windows_ADn.png)
+
+The same sessions at three windows, on one D scale. Each dot is a session, filled where the ring is
+well sampled and open below 20 cells; the bar is the mouse mean.
+
 ### Interpretation
 
 **200 ms and 500 ms are the same measurement.** A ratio of 0.92 means anyone
@@ -100,9 +107,15 @@ What this does *not* establish is why. See `diffusion2`.
 | ADn+PoS | 13 | 0.64 | 0.59 | 0.55 | 0.50 | 0.43 | 0.41 | 0.39 |
 | PoS | 20 | 4.21 | 3.67 | 2.55 | 1.61 | 1.20 | 0.99 | 0.83 |
 
-![1000 ms window](../../outputs/figures/diffusion1_cellset_1000ms.png)
+**Figure — D by cell set, 1 s window** (`diffusion1_exp2_cellset_1000ms.png`)
 
-![5000 ms window](../../outputs/figures/diffusion1_cellset_5000ms.png)
+![D by cell set, 1 s window](../../outputs/figures/diffusion1_exp2_cellset_1000ms.png)
+
+**Figure — D by cell set, 5 s window** (`diffusion1_exp2_cellset_5000ms.png`)
+
+![D by cell set, 5 s window](../../outputs/figures/diffusion1_exp2_cellset_5000ms.png)
+
+Note the panels share a D scale with each other but not with the exp1 figure above.
 
 ### Interpretation
 
@@ -149,19 +162,21 @@ uv run hd-exp check   diffusion1
 
 ## Provenance
 
-Generated 2026-08-04T16:07:37+00:00 from commit `e3734ec`.
+Generated 2026-08-04T17:50:32+00:00 from commit `7089052`.
 
 | config | value |
 |---|---|
 | `cell_set` | `ADn` |
 | `cell_sets` | `['ADn', 'ADn+PoS', 'PoS']` |
+| `cellset_figure_windows_ms` | `[1000, 5000]` |
 | `dt` | `0.1` |
 | `estimator` | `circular` |
-| `figure_windows_ms` | `[1000, 3000, 5000]` |
+| `figure_windows_ms` | `[200, 1000, 5000]` |
 | `reference_ms` | `200` |
 | `well_sampled` | `20` |
 | `windows_ms` | `[200, 500, 1000, 2000, 3000, 4000, 5000]` |
 
 | input | value |
 |---|---|
+| `figures` | `{'FIG_CELLSET_1000': 'outputs/figures/diffusion1_exp2_cellset_1000ms.png', 'FIG_CELLSET_5000': 'outputs/figures/diffusion1_exp2_cellset_5000ms.png', 'FIG_WINDOWS': 'outputs/figures/diffusion1_exp1_windows_ADn.png'}` |
 | `input_sessions` | `32` |

@@ -32,6 +32,11 @@ spans @RESULTANT_MIN@–@RESULTANT_MAX@, so the circular estimator is still sens
 
 @PER_SESSION@
 
+@FIG_WINDOWS@
+
+The same sessions at three windows, on one D scale. Each dot is a session, filled where the ring is
+well sampled and open below 20 cells; the bar is the mouse mean.
+
 ### Interpretation
 
 **200 ms and 500 ms are the same measurement.** A ratio of @SHORT_RATIO_MEDIAN@ means anyone
@@ -54,6 +59,8 @@ What this does *not* establish is why. See `diffusion2`.
 @FIG_CELLSET_1000@
 
 @FIG_CELLSET_5000@
+
+Note the panels share a D scale with each other but not with the exp1 figure above.
 
 ### Interpretation
 

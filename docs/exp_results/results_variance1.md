@@ -35,6 +35,14 @@ Per-mouse shrunken estimates:
 | 17 | 8 | 0.427 | 0.160 | 0.587 | 0.625 |
 | 20 | 1 | 0.512 | 0.362 | 0.672 | 1.040 |
 
+**Figure — every gated session, grouped by mouse (≥15 cells)** (`variance1_exp1_by_mouse_min15.png`)
+
+![every gated session, grouped by mouse (≥15 cells)](../../outputs/figures/variance1_exp1_by_mouse_min15.png)
+
+Spread *between* the bars is the between-mouse component; spread *within* a column is
+within-mouse. The eye finds the mice visibly separated — the model's point is that six draws cannot
+certify that separation exceeds chance.
+
 ### Interpretation
 
 **The ICC point estimate is not the finding; its interval is.** The ICC sits around 0.6, which taken
@@ -80,6 +88,10 @@ Restricted to sessions with **14-28 ADn cells**: 21 sessions,
 | 17 | 8 | 25.00 | 1.58 |
 | 24 | 3 | 16.00 | 2.06 |
 | 20 | 1 | 16.00 | 2.83 |
+
+**Figure — the same comparison restricted to 14–28 ADn cells** (`variance1_exp3_matched_band.png`)
+
+![the same comparison restricted to 14–28 ADn cells](../../outputs/figures/variance1_exp3_matched_band.png)
 
 - **ICC = 0.647**, 95 % CI [0.004, 0.889] (ANOVA 0.635)
 - **Kruskal-Wallis across mice: p = 0.0079**
@@ -144,7 +156,7 @@ uv run hd-exp check variance1                        # re-run and diff against c
 
 ## Provenance
 
-Generated 2026-08-04T16:32:42+00:00 from commit `4e7dc54`.
+Generated 2026-08-04T18:01:04+00:00 from commit `7089052`.
 
 | config | value |
 |---|---|
@@ -161,4 +173,5 @@ Generated 2026-08-04T16:32:42+00:00 from commit `4e7dc54`.
 | input | value |
 |---|---|
 | `estimator` | `D_bout_aware` |
+| `figures` | `{'FIG_BY_MOUSE': 'outputs/figures/variance1_exp1_by_mouse_min15.png', 'FIG_MATCHED': 'outputs/figures/variance1_exp3_matched_band.png'}` |
 | `input_sessions` | `32` |

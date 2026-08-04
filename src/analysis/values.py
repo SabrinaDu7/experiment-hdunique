@@ -78,17 +78,23 @@ class Values:
         self._set(name, _markdown_table(frame=frame, floatfmt=floatfmt))
 
     def figure(self, name: str, path: Path, *, caption: str = "") -> None:
-        """Record a figure under `name`, rendered as a markdown image link.
+        """Record a figure under `name`, rendered as a named markdown image link.
 
-        The path is stored relative to the repository root so the link resolves both on disk and on
-        a git host, whatever `$OUTPUT_PATH` happens to be on the machine that produced it.
+        The rendered block states the **filename** as well as showing the image, so a reader of the
+        results document can find the file on disk without guessing, and so a figure that has been
+        renamed or removed is obvious rather than a silent broken image.
+
+        The path is stored relative to the repository root, so the link resolves both on disk and on
+        a git host whatever `$OUTPUT_PATH` happened to be on the machine that produced it.
         """
         repo_root = Path(__file__).resolve().parent.parent.parent
         try:
             rel = path.resolve().relative_to(repo_root)
         except ValueError:
             rel = path
-        self._set(name, f"![{caption or name}](../../{rel})")
+        label = caption or name
+        self._set(name, f"**Figure — {label}** (`{path.name}`)\n\n![{label}](../../{rel})")
+        self.notes.setdefault("figures", {})[name] = str(rel)
 
     def note(self, name: str, value: Any) -> None:
         """Record a value for provenance only — not substitutable into the template."""

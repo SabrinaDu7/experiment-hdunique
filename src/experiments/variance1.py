@@ -7,6 +7,8 @@ import pandas as pd
 from analysis import io, stats
 from analysis.values import Values
 from config import DANDI_MICE, FIT_WINDOWS_MS
+from env import figures_dir
+from figures.strips import plot_grouped_strip
 from variance import (
     anova_icc,
     bootstrap_components,
@@ -84,6 +86,14 @@ def _exp1_gates(*, cfg: Config, raw: pd.DataFrame, values: Values) -> pd.DataFra
             values.scalar("HEADLINE_MICE", rows[-1]["mice"], fmt="d")
             effects = mouse_effects(result=fit_lmm(df=gated), df=gated)
             values.table("PER_MOUSE_EFFECTS", effects, floatfmt=".3f")
+            path = figures_dir() / f"{QUESTION_ID}_exp1_by_mouse_min{gate}.png"
+            plot_grouped_strip(
+                panels={f"≥{gate} ADn cells": gated}, group="mouse",
+                title=f"REM diffusion by mouse ({cfg.cell_set}, gated at ≥{gate} cells)",
+                label_prefix="Mouse", save_path=path,
+            )
+            values.figure("FIG_BY_MOUSE", path,
+                          caption=f"every gated session, grouped by mouse (≥{gate} cells)")
     frame = pd.DataFrame(rows)
     values.table("GATE_TABLE", frame, floatfmt=".3f")
     return frame
@@ -135,6 +145,14 @@ def _exp3_matched(*, cfg: Config, raw: pd.DataFrame, values: Values) -> None:
         .sort_values("median_D")
     )
     values.table("MATCHED_PER_MOUSE", per_mouse, floatfmt=".2f")
+    path = figures_dir() / f"{QUESTION_ID}_exp3_matched_band.png"
+    plot_grouped_strip(
+        panels={f"{lo}–{hi} ADn cells": band}, group="mouse",
+        title=f"REM diffusion by mouse, cell count matched to {lo}–{hi} ({cfg.cell_set})",
+        label_prefix="Mouse", save_path=path,
+    )
+    values.figure("FIG_MATCHED", path,
+                  caption=f"the same comparison restricted to {lo}–{hi} ADn cells")
     values.scalar("MATCHED_D_SPREAD", per_mouse["median_D"].max() / per_mouse["median_D"].min(),
                   fmt=".1f")
 

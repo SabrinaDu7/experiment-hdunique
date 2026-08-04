@@ -73,3 +73,28 @@ def test_values_roundtrip_is_json_safe() -> None:
     v = Values(question_id="q1", config={"windows": [200, 500]})
     v.scalar("A", 1.0)
     assert json.loads(json.dumps(v.to_dict()))["tokens"]["A"] == "1.000"
+
+
+def test_figure_names_the_file_it_points_at(tmp_path: Path) -> None:
+    """A results document must say which file a figure is, not just embed it."""
+    v = Values(question_id="q1", config={})
+    v.figure("FIG", tmp_path / "q1_exp1_windows.png", caption="windows")
+    rendered = v.tokens["FIG"]
+    assert "q1_exp1_windows.png" in rendered, "the filename must appear in the document"
+    assert "![windows](" in rendered
+    assert v.notes["figures"]["FIG"].endswith("q1_exp1_windows.png")
+
+
+def test_figures_token_includes_every_figure(tmp_path: Path) -> None:
+    """@FIGURES@ saves the template from naming each figure when placement does not matter."""
+    docs = _docs(tmp_path, "# Q1\n\n@FIGURES@\n")
+    vals = _values(FIG_A="![a](../../a.png)", FIG_B="![b](../../b.png)")
+    text = render(question_id="q1", values=vals, docs_root=docs).read_text()
+    assert "![a](../../a.png)" in text and "![b](../../b.png)" in text
+
+
+def test_unreferenced_figure_is_an_error(tmp_path: Path) -> None:
+    """A generated figure the document never mentions is as wrong as a stale number."""
+    docs = _docs(tmp_path, "# Q1\n\nno figures here\n")
+    with pytest.raises(KeyError, match="FIG_A"):
+        render(question_id="q1", values=_values(FIG_A="![a](../../a.png)"), docs_root=docs)

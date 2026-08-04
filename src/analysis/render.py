@@ -69,8 +69,15 @@ def render(*, question_id: str, values: dict[str, Any], docs_root: Path) -> Path
             "Write the .in first — it holds the prose; the analysis only supplies numbers."
         )
 
-    tokens = values.get("tokens", {})
+    tokens = dict(values.get("tokens", {}))
     body = template.read_text()
+
+    # `@FIGURES@` is a convenience: every figure this analysis produced, in the order it made them,
+    # for templates that do not care where each one lands. Placing `@FIG_*@` individually still
+    # works and gives control over position.
+    figure_tokens = [k for k in tokens if k.startswith("FIG_")]
+    if "@FIGURES@" in body:
+        tokens["FIGURES"] = "\n\n".join(tokens[k] for k in figure_tokens)
 
     missing = sorted({m.group(1) for m in TOKEN.finditer(body)} - set(tokens))
     if missing:
@@ -80,8 +87,20 @@ def render(*, question_id: str, values: dict[str, Any], docs_root: Path) -> Path
             "of it; a results file must never render with a gap."
         )
 
+    referenced = {m.group(1) for m in TOKEN.finditer(body)}
+
+    # A figure that was generated but never referenced would sit on disk unmentioned, which is the
+    # same failure as a stale number: the document would not describe what the analysis produced.
+    orphan_figures = sorted(set(figure_tokens) - referenced) if "FIGURES" not in tokens else []
+    if orphan_figures:
+        raise KeyError(
+            f"{question_id}: the analysis produced {len(orphan_figures)} figure(s) the template "
+            f"never references: {', '.join(orphan_figures)}. Add the token(s), or use @FIGURES@ "
+            "to include every figure automatically."
+        )
+
     rendered = TOKEN.sub(lambda m: tokens[m.group(1)], body)
-    unused = sorted(set(tokens) - {m.group(1) for m in TOKEN.finditer(body)})
+    unused = sorted(set(tokens) - referenced - {"FIGURES"})
 
     date = datetime.now(UTC).strftime("%Y-%m-%d")
     head = f"{date}\n\n{BANNER.format(stem=f'results_{question_id}')}\n\n"

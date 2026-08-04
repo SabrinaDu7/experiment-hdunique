@@ -7,6 +7,8 @@ import pandas as pd
 
 from analysis import io, stats
 from analysis.values import Values
+from env import figures_dir
+from figures.strips import plot_grouped_strip
 from sweep import iter_cache
 
 QUESTION_ID = "variance2"
@@ -93,6 +95,15 @@ def analyse(*, cfg: Config, values: Values) -> None:
     values.scalar("WITHIN_SESSION_SD", float(within.median()))
     values.scalar("WITHIN_SESSION_SPREAD", float(spread.median()), fmt=".1f")
     values.scalar("WITHIN_SESSION_SPREAD_MAX", float(spread.max()), fmt=".0f")
+
+    path = figures_dir() / f"{QUESTION_ID}_exp1_bouts_by_mouse.png"
+    plot_grouped_strip(
+        panels={"every REM bout": bouts}, group="mouse",
+        title=f"Per-bout REM diffusion ({cfg.cell_set}) — spread within a column is "
+              "within-mouse, and includes the bout level",
+        label_prefix="Mouse", statistic="median", save_path=path,
+    )
+    values.figure("FIG_BOUTS_BY_MOUSE", path, caption="every bout, grouped by mouse")
 
     # --- exp2: how much of the bout level is decode quality? ---
     quality = ring_quality(cell_set=cfg.cell_set, off_ring_frac=cfg.off_ring_frac)

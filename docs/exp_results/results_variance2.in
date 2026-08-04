@@ -23,6 +23,11 @@ ICC(mouse) = @RAW_ICC_MOUSE@; ICC(mouse + session) = @RAW_ICC_MOUSE_SESSION@.
 Within-session spread: median SD of log *D* = @WITHIN_SESSION_SD@; median max/min *D* across a
 session's bouts = **@WITHIN_SESSION_SPREAD@×**, worst @WITHIN_SESSION_SPREAD_MAX@×.
 
+@FIG_BOUTS_BY_MOUSE@
+
+Every bout, grouped by mouse. The vertical scatter inside a single mouse's column is what the
+two-level model was folding into "within-mouse", and it is substantial.
+
 ### Interpretation
 
 **Bout-level variance is the largest single component, and it was previously invisible** — the

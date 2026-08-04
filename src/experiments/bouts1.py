@@ -7,6 +7,8 @@ import pandas as pd
 
 from analysis import io, stats
 from analysis.values import Values
+from env import figures_dir
+from figures.strips import plot_grouped_strip
 
 QUESTION_ID = "bouts1"
 EXPERIMENTS = (
@@ -131,4 +133,16 @@ def analyse(*, cfg: Config, values: Values) -> None:
             }
         )
     values.table("NAMED_SESSIONS", pd.DataFrame(rows), floatfmt=".2f")
+
+    named = bouts[bouts["session_id"].isin(r["session"] for r in rows)].copy()
+    named["exit"] = np.where(named["to_exit"] == 1, cfg.exit_state, "other")
+    path = figures_dir() / f"{QUESTION_ID}_exp2_exit_state.png"
+    plot_grouped_strip(
+        panels={sid: named[named.session_id == sid] for sid in (r["session"] for r in rows)},
+        group="exit",
+        title=f"Per-bout REM diffusion split by the state each bout exits to ({cfg.cell_set})",
+        statistic="median", count_col=None, save_path=path,
+    )
+    values.figure("FIG_EXIT_STATE", path,
+                  caption="three sessions, bouts split by exit state")
     values.scalar("NAMED_MAX_RATIO", float(max(abs(np.log(r["ratio"])) for r in rows)), fmt=".2f")
