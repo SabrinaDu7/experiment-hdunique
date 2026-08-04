@@ -27,9 +27,11 @@ from pathlib import Path
 import numpy as np
 import tyro
 
-from hdunique import loader, rates, sweep
-from hdunique.config import PAPER_REM_TARGETS, DiffusionConfig
-from hdunique.env import cache_dir
+import loader
+import rates
+import sweep
+from config import PAPER_REM_TARGETS, DiffusionConfig
+from env import cache_dir
 
 
 @dataclasses.dataclass(frozen=True)

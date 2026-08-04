@@ -17,10 +17,10 @@ import warnings
 import pandas as pd
 import tyro
 
-from hdunique import variance
-from hdunique.config import FIT_WINDOWS_MS, VarianceGateConfig
-from hdunique.env import results_dir
-from hdunique.sweep import load_all_mice
+import variance
+from config import FIT_WINDOWS_MS, VarianceGateConfig
+from env import results_dir
+from sweep import load_all_mice
 
 
 def summarise(*, df: pd.DataFrame, window_ms: int, cfg: VarianceGateConfig) -> dict[str, object]:

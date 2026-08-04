@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pynapple as nap
 
-from hdunique.env import dandi_root
+from env import dandi_root
 
 _NWB_RE = re.compile(r"sub-Mouse(\d+)_ses-Mouse\d+-(\d+)_")
 

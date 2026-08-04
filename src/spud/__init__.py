@@ -5,7 +5,7 @@ Upstream: https://github.com/FieteLab/SPUD (repo `shared_scripts/`, `read_in_dat
 
 These modules are kept **as the authors wrote them** — untyped, `from __future__ import division`,
 no keyword-only arguments — so that this port can be diffed against the original line by line. They
-are deliberately exempt from this repo's coding style; everything in `hdunique/` follows it.
+are deliberately exempt from this repo's coding style; everything else follows it.
 
 The only edits made:
 - `manifold_fit_and_decode_fns.py`: `import shared_scripts.X` -> `import spud.X` (package rename).

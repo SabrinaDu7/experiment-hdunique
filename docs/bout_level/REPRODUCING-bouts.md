@@ -32,7 +32,7 @@ NWB files.
 ```bash
 uv run python - <<'EOF'
 import numpy as np, pandas as pd
-from hdunique import loader
+from . import loader
 gaps = []
 for m, s in loader.list_sessions():
     try: d = loader.load_session(mouse=m, session=s)
@@ -55,7 +55,7 @@ Expected: `n gaps 643, min 11s, median 597s`, and `<= 10s: 0`.
 ```bash
 uv run python - <<'EOF'
 import pandas as pd
-from hdunique import loader
+from . import loader
 rows = []
 for m, s in loader.list_sessions():
     try: d = loader.load_session(mouse=m, session=s)

@@ -16,7 +16,7 @@ import pandas as pd
 from beartype import beartype
 from jaxtyping import Float, jaxtyped
 
-from hdunique.config import VarianceConfig
+from config import VarianceConfig
 
 #: Raw-D labels placed on a log-D axis, so the axis reads in rad^2/s.
 D_TICKS = np.array([0.25, 0.5, 1.0, 2.0, 4.0, 8.0])

@@ -17,9 +17,12 @@ import dataclasses
 import numpy as np
 import tyro
 
-from hdunique import diffusion as dif
-from hdunique import loader, manifold, rates, sweep
-from hdunique.config import DIFFUSION_LAGS, HEADLINE_WINDOW_MS, DiffusionConfig
+import diffusion as dif
+import loader
+import manifold
+import rates
+import sweep
+from config import DIFFUSION_LAGS, HEADLINE_WINDOW_MS, DiffusionConfig
 
 
 @dataclasses.dataclass(frozen=True)

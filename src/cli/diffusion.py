@@ -15,10 +15,12 @@ import time
 import numpy as np
 import tyro
 
-from hdunique import diffusion as dif
-from hdunique import loader, plotting, sweep
-from hdunique.config import DIFFUSION_LAGS, HEADLINE_WINDOW_MS, DiffusionConfig
-from hdunique.env import cache_dir, results_dir
+import diffusion as dif
+import loader
+import plotting
+import sweep
+from config import DIFFUSION_LAGS, HEADLINE_WINDOW_MS, DiffusionConfig
+from env import cache_dir, results_dir
 
 
 def _print_row(*, row: dict[str, object], elapsed: float) -> None:

@@ -18,11 +18,12 @@ import numpy as np
 import pandas as pd
 import tyro
 
-from hdunique import diffusion as dif
-from hdunique import plotting, timescale
-from hdunique.config import TIMESCALE_MAX_LAG, TIMESCALE_WINDOWS_MS
-from hdunique.env import results_dir
-from hdunique.sweep import iter_cache
+import diffusion as dif
+import plotting
+import timescale
+from config import TIMESCALE_MAX_LAG, TIMESCALE_WINDOWS_MS
+from env import results_dir
+from sweep import iter_cache
 
 
 @dataclasses.dataclass(frozen=True)

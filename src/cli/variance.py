@@ -15,11 +15,11 @@ import numpy as np
 import pandas as pd
 import tyro
 
-from hdunique import variance
-from hdunique.config import VarianceConfig
-from hdunique.env import results_dir
-from hdunique.plotting import plot_variance_summary
-from hdunique.sweep import load_all_mice
+import variance
+from config import VarianceConfig
+from env import results_dir
+from plotting import plot_variance_summary
+from sweep import load_all_mice
 
 
 def print_gated_table(*, df: pd.DataFrame, cfg: VarianceConfig) -> None:

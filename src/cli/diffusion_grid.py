@@ -11,11 +11,11 @@ import dataclasses
 import numpy as np
 import tyro
 
-from hdunique import diffusion as dif
-from hdunique import sweep
-from hdunique.config import DIFFUSION_LAGS, HEADLINE_WINDOW_MS
-from hdunique.env import cache_dir, results_dir
-from hdunique.plotting import DiffusionPanel, plot_mouse_diffusion_grid
+import diffusion as dif
+import sweep
+from config import DIFFUSION_LAGS, HEADLINE_WINDOW_MS
+from env import cache_dir, results_dir
+from plotting import DiffusionPanel, plot_mouse_diffusion_grid
 
 
 @dataclasses.dataclass(frozen=True)

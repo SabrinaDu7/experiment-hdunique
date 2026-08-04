@@ -3,7 +3,8 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/hdunique", "src/spud"]
+only-include = ["src"]
+sources = ["src"]
 
 [project]
 name = "experiment-hdunique"
@@ -29,13 +30,13 @@ dependencies = [
 ]
 
 [project.scripts]
-hd-diffusion = "hdunique.cli.diffusion:main"
-hd-bouts = "hdunique.cli.bout_diffusion:main"
-hd-cellset-strip = "hdunique.cli.cellset_strip:main"
-hd-diffusion-grid = "hdunique.cli.diffusion_grid:main"
-hd-timescale = "hdunique.cli.timescale:main"
-hd-variance = "hdunique.cli.variance:main"
-hd-variance-by-window = "hdunique.cli.variance_by_window:main"
+hd-diffusion = "cli.diffusion:main"
+hd-bouts = "cli.bout_diffusion:main"
+hd-cellset-strip = "cli.cellset_strip:main"
+hd-diffusion-grid = "cli.diffusion_grid:main"
+hd-timescale = "cli.timescale:main"
+hd-variance = "cli.variance:main"
+hd-variance-by-window = "cli.variance_by_window:main"
 
 [tool.ruff]
 line-length = 100

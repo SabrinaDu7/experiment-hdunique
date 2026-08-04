@@ -50,8 +50,8 @@ direnv allow            # or: source .envrc
 
 ```bash
 uv run python -c "
-from hdunique.env import dandi_root, results_dir
-from hdunique import loader
+from env import dandi_root, results_dir
+from . import loader
 print('data:   ', dandi_root(), dandi_root().exists())
 print('results:', results_dir())
 print('sessions found:', len(loader.list_sessions()))

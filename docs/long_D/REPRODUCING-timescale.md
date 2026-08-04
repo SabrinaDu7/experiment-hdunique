@@ -160,7 +160,7 @@ The §5.4 table:
 ```bash
 uv run python - <<'EOF'
 import numpy as np
-from hdunique.cli.cellset_strip import load_curves, fit_window
+from cli.cellset_strip import load_curves, fit_window
 print(f"{'cell set':10s} {'n':>4s}" + "".join(f"{w/1000:>8.1f}s" for w in (200,1000,2000,3000,4000,5000)))
 for cs in ("ADn", "ADn+PoS", "PoS"):
     f = load_curves(cell_set=cs)
@@ -242,8 +242,8 @@ seen on real 200 ms data is the data's leptokurtosis, not the estimator.
 ```bash
 uv run python - <<'EOF'
 import glob, numpy as np, pandas as pd
-from hdunique import diffusion as dif, timescale
-from hdunique.sweep import iter_cache
+from . import diffusion as dif, timescale
+from sweep import iter_cache
 pub = pd.concat([pd.read_parquet(f) for f in sorted(glob.glob("outputs/results/diffusion_Mouse*.parquet"))])
 pub = pub[pub.cell_set == "ADn"].set_index("session_id")
 lags = tuple(range(1, 51)); worst = 0.0
@@ -264,7 +264,7 @@ Expected: `0.000e+00`. The `wrapped` curve is the published estimator on a longe
 ```bash
 uv run python - <<'EOF'
 import numpy as np
-from hdunique.sweep import iter_cache
+from sweep import iter_cache
 short = 0; total = 0
 for e in iter_cache(cell_set="ADn"):
     bl = e.bout_lengths; total += len(bl); short += sum(1 for b in bl if b <= 50)

@@ -19,9 +19,9 @@ import numpy as np
 import pandas as pd
 import tyro
 
-from hdunique import diffusion as dif
-from hdunique.env import results_dir
-from hdunique.plotting import WELL_SAMPLED_CELLS, plot_cellset_strip
+import diffusion as dif
+from env import results_dir
+from plotting import WELL_SAMPLED_CELLS, plot_cellset_strip
 
 #: Cell sets to draw, in panel order. ADn is the analysis set; the other two are diagnostics.
 CELL_SETS: tuple[str, ...] = ("ADn", "ADn+PoS", "PoS")

@@ -6,7 +6,7 @@ from jaxtyping import Float, jaxtyped
 
 import spud.dim_red_fns as drf
 import spud.manifold_fit_and_decode_fns as mff
-from hdunique.config import DiffusionConfig
+from config import DiffusionConfig
 
 
 @jaxtyped(typechecker=beartype)

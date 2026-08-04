@@ -27,7 +27,7 @@ import pynapple as nap
 from beartype import beartype
 from jaxtyping import Float, jaxtyped
 
-from hdunique import diffusion as dif
+import diffusion as dif
 
 #: Label used when a bout is the first or last epoch in the recording.
 BOUNDARY_STATE: str = "none"

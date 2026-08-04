@@ -18,10 +18,12 @@ import numpy as np
 import pandas as pd
 import tyro
 
-from hdunique import bouts, loader, plotting
-from hdunique.config import DIFFUSION_LAGS, HEADLINE_WINDOW_MS
-from hdunique.env import results_dir
-from hdunique.sweep import iter_cache
+import bouts
+import loader
+import plotting
+from config import DIFFUSION_LAGS, HEADLINE_WINDOW_MS
+from env import results_dir
+from sweep import iter_cache
 
 #: Lags used for the per-bout curve: the same 100..500 ms the headline estimator fits over.
 BOUT_LAGS: tuple[int, ...] = DIFFUSION_LAGS

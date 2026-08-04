@@ -32,8 +32,8 @@ import pandas as pd
 import statsmodels.formula.api as smf
 from statsmodels.regression.mixed_linear_model import MixedLMResults
 
-from hdunique.config import HEADLINE_WINDOW_MS
-from hdunique.diffusion import window_column
+from config import HEADLINE_WINDOW_MS
+from diffusion import window_column
 
 
 def d_column(*, window_ms: int, estimator: str = "D") -> str:
