@@ -127,7 +127,7 @@ uv run hd-exp run bouts1 --plot-sessions 25-140130 28-140313
 
 ## Provenance
 
-Generated 2026-08-04T03:13:09+00:00 from commit `e5bd815`.
+Generated 2026-08-04T16:27:13+00:00 from commit `a19075c`.
 
 | config | value |
 |---|---|

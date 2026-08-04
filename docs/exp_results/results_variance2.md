@@ -118,7 +118,7 @@ uv run hd-exp check   variance2
 
 ## Provenance
 
-Generated 2026-08-04T03:13:07+00:00 from commit `e5bd815`.
+Generated 2026-08-04T16:27:11+00:00 from commit `a19075c`.
 
 | config | value |
 |---|---|
