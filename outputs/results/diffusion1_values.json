@@ -6,10 +6,6 @@
       "ADn+PoS",
       "PoS"
     ],
-    "cellset_figure_windows_ms": [
-      1000,
-      5000
-    ],
     "dt": 0.1,
     "estimator": "circular",
     "figure_windows_ms": [
@@ -29,12 +25,10 @@
       5000
     ]
   },
-  "generated": "2026-08-04T17:50:32+00:00",
-  "git_commit": "7089052",
+  "generated": "2026-08-04T21:29:18+00:00",
+  "git_commit": "f0e6970",
   "notes": {
     "figures": {
-      "FIG_CELLSET_1000": "outputs/figures/diffusion1_exp2_cellset_1000ms.png",
-      "FIG_CELLSET_5000": "outputs/figures/diffusion1_exp2_cellset_5000ms.png",
       "FIG_WINDOWS": "outputs/figures/diffusion1_exp1_windows_ADn.png"
     },
     "input_sessions": 32
@@ -48,8 +42,6 @@
     "ALPHA_SHORT": "0.93",
     "ALPHA_SHORT_WRAPPED": "0.87",
     "CELLSET_TABLE": "| cell_set | sessions | D_200 | D_500 | D_1000 | D_2000 | D_3000 | D_4000 | D_5000 |\n|---|---|---|---|---|---|---|---|---|\n| ADn | 32 | 0.90 | 0.87 | 0.74 | 0.55 | 0.46 | 0.41 | 0.36 |\n| ADn+PoS | 13 | 0.64 | 0.59 | 0.55 | 0.50 | 0.43 | 0.41 | 0.39 |\n| PoS | 20 | 4.21 | 3.67 | 2.55 | 1.61 | 1.20 | 0.99 | 0.83 |",
-    "FIG_CELLSET_1000": "**Figure \u2014 D by cell set, 1 s window** (`diffusion1_exp2_cellset_1000ms.png`)\n\n![D by cell set, 1 s window](../../outputs/figures/diffusion1_exp2_cellset_1000ms.png)",
-    "FIG_CELLSET_5000": "**Figure \u2014 D by cell set, 5 s window** (`diffusion1_exp2_cellset_5000ms.png`)\n\n![D by cell set, 5 s window](../../outputs/figures/diffusion1_exp2_cellset_5000ms.png)",
     "FIG_WINDOWS": "**Figure \u2014 D at each measurement window, ADn cells only** (`diffusion1_exp1_windows_ADn.png`)\n\n![D at each measurement window, ADn cells only](../../outputs/figures/diffusion1_exp1_windows_ADn.png)",
     "LONGEST_MS": "5000",
     "LONGEST_RATIO_HI": "0.58",

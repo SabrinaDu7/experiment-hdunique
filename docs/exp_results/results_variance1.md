@@ -6,7 +6,7 @@
 
 > **Question.** Each mouse contributes several REM sessions, each with one diffusion constant *D*.
 > Is the spread in *D* driven more by **which animal** it came from, or by **which session** of that
-> animal?
+> animal? (ie more between animal or within animal variance?)
 
 Methods and rationale: [`instructions-variance1.md`](../exp_instructions/instructions-variance1.md).
 

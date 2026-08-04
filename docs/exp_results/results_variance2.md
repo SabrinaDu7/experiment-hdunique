@@ -27,13 +27,6 @@ ICC(mouse) = 0.343; ICC(mouse + session) = 0.649.
 Within-session spread: median SD of log *D* = 0.482; median max/min *D* across a
 session's bouts = **6.4×**, worst 42×.
 
-**Figure — every bout, grouped by mouse** (`variance2_exp1_bouts_by_mouse.png`)
-
-![every bout, grouped by mouse](../../outputs/figures/variance2_exp1_bouts_by_mouse.png)
-
-Every bout, grouped by mouse. The vertical scatter inside a single mouse's column is what the
-two-level model was folding into "within-mouse", and it is substantial.
-
 ### Interpretation
 
 **Bout-level variance is the largest single component, and it was previously invisible** — the
@@ -125,7 +118,7 @@ uv run hd-exp check   variance2
 
 ## Provenance
 
-Generated 2026-08-04T17:51:03+00:00 from commit `7089052`.
+Generated 2026-08-04T21:29:21+00:00 from commit `f0e6970`.
 
 | config | value |
 |---|---|
@@ -136,5 +129,4 @@ Generated 2026-08-04T17:51:03+00:00 from commit `7089052`.
 
 | input | value |
 |---|---|
-| `figures` | `{'FIG_BOUTS_BY_MOUSE': 'outputs/figures/variance2_exp1_bouts_by_mouse.png'}` |
 | `input_bouts` | `537` |

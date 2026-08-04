@@ -56,12 +56,6 @@ What this does *not* establish is why. See `diffusion2`.
 
 @CELLSET_TABLE@
 
-@FIG_CELLSET_1000@
-
-@FIG_CELLSET_5000@
-
-Note the panels share a D scale with each other but not with the exp1 figure above.
-
 ### Interpretation
 
 **The cell sets converge as the window lengthens.** PoS sits @POS_OVER_ADN_200@× above ADn at

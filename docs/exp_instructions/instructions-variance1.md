@@ -33,6 +33,11 @@ experiment 3, which asks whether anything survives once cell count is matched.
 
 ## Methods
 
+The decoding method is SPUD (spline parameterization for unsupervised decoding) from
+**Chaudhuri et al. (2019),** [*The intrinsic population dynamics of a canonical cognitive
+circuit*](https://www.nature.com/articles/s41593-019-0460-x), Nature Neuroscience. The data is
+[DANDI dandiset 000056](https://dandiarchive.org/dandiset/000056) (Peyrache et al. 2015).
+
 Run everything with:
 
 ```bash

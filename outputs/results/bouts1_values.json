@@ -14,12 +14,9 @@
       "20-130515"
     ]
   },
-  "generated": "2026-08-04T17:51:06+00:00",
-  "git_commit": "7089052",
+  "generated": "2026-08-04T21:29:23+00:00",
+  "git_commit": "f0e6970",
   "notes": {
-    "figures": {
-      "FIG_EXIT_STATE": "outputs/figures/bouts1_exp2_exit_state.png"
-    },
     "input_bouts": 537
   },
   "question_id": "bouts1",
@@ -35,7 +32,6 @@
     "EXIT_MODELS": "| model | beta | p |\n|---|---|---|\n| raw | -0.499 | 0.000 |\n| group_random | -0.053 | 0.498 |\n| group_fixed | -0.032 | 0.677 |",
     "EXIT_P_FIXED": "0.68",
     "EXIT_P_RAW": "7.4e-06",
-    "FIG_EXIT_STATE": "**Figure \u2014 three sessions, bouts split by exit state** (`bouts1_exp2_exit_state.png`)\n\n![three sessions, bouts split by exit state](../../outputs/figures/bouts1_exp2_exit_state.png)",
     "MINORITY_BY_MOUSE": "| mouse | count |\n|---|---|\n| 12 | 9 |\n| 17 | 42 |\n| 20 | 27 |\n| 24 | 3 |",
     "MINORITY_MICE": "4",
     "NAMED_MAX_RATIO": "0.16",

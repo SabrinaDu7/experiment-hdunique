@@ -20,12 +20,6 @@ Per-mouse shrunken estimates:
 
 @PER_MOUSE_EFFECTS@
 
-@FIG_BY_MOUSE@
-
-Spread *between* the bars is the between-mouse component; spread *within* a column is
-within-mouse. The eye finds the mice visibly separated — the model's point is that six draws cannot
-certify that separation exceeds chance.
-
 ### Interpretation
 
 **The ICC point estimate is not the finding; its interval is.** The ICC sits around 0.6, which taken
@@ -60,8 +54,6 @@ Restricted to sessions with **@MATCHED_BAND@ ADn cells**: @MATCHED_SESSIONS@ ses
 @MATCHED_MICE@ mice.
 
 @MATCHED_PER_MOUSE@
-
-@FIG_MATCHED@
 
 - **ICC = @MATCHED_ICC@**, 95 % CI [@MATCHED_ICC_LO@, @MATCHED_ICC_HI@] (ANOVA @MATCHED_ANOVA_ICC@)
 - **Kruskal-Wallis across mice: p = @MATCHED_KRUSKAL_P@**

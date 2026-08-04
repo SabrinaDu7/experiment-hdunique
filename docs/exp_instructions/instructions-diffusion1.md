@@ -25,6 +25,11 @@ Answering this needs circular wrapping dealt with first. Angular differences fol
 
 ## Methods
 
+The decoding method is SPUD (spline parameterization for unsupervised decoding) from
+**Chaudhuri et al. (2019),** [*The intrinsic population dynamics of a canonical cognitive
+circuit*](https://www.nature.com/articles/s41593-019-0460-x), Nature Neuroscience. The data is
+[DANDI dandiset 000056](https://dandiarchive.org/dandiset/000056) (Peyrache et al. 2015).
+
 ```bash
 uv run hd-exp collect diffusion1     # long-lag curves for all three cell sets (~5 min)
 uv run hd-exp run     diffusion1

@@ -26,6 +26,10 @@ there is no case where the true answer is known.
   fitted ring and its own *D* calculation, and see what comes back.
 
 ## Methods
+The decoding method is SPUD (spline parameterization for unsupervised decoding) from
+**Chaudhuri et al. (2019),** [*The intrinsic population dynamics of a canonical cognitive
+circuit*](https://www.nature.com/articles/s41593-019-0460-x), Nature Neuroscience. The data is
+[DANDI dandiset 000056](https://dandiarchive.org/dandiset/000056) (Peyrache et al. 2015).
 
 ```bash
 uv run hd-exp collect diffusion2     # ~30 s per session, ~20 min for the full set

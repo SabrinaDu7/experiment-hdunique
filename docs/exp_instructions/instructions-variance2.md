@@ -9,6 +9,11 @@ variance in *D* live between mice, between sessions of a mouse, or between **bou
 
 ## Motivation
 
+The decoding method is SPUD (spline parameterization for unsupervised decoding) from
+**Chaudhuri et al. (2019),** [*The intrinsic population dynamics of a canonical cognitive
+circuit*](https://www.nature.com/articles/s41593-019-0460-x), Nature Neuroscience. The data is
+[DANDI dandiset 000056](https://dandiarchive.org/dandiset/000056) (Peyrache et al. 2015).
+
 `variance1` models one *D* per session, which silently assumes a session's *D* is a well-defined
 quantity. If bouts within a session disagree, that assumption fails: the session-level *D* is an
 average over a distribution, and what the two-level model calls "within-mouse variance" is partly

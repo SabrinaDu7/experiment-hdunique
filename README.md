@@ -1,5 +1,6 @@
 # experiment-hdunique
 
+## Intro to this repo
 This is a repo aimed at testing the following hypothesis:
 - What we see during REM sleep is intrinsic, it’s not plastic; it reflects internal dynamics that are UNIQUE to an animal.
 - The only thing that can explain the REM sleep activity variance is animal identity. Nothing else.
@@ -18,37 +19,40 @@ To answer Q1, we are analyzing REM activity across metrics, animals, and dataset
 ## Metrics
 - Population-level:
   - **REM Diffusion Constant**: How fast does the head-direction system's internal compass drift during REM sleep, and how much of that drift is a property of the animal rather than the recording session?
+  - **Angular speed**: How quickly the brain's estimate of heading is changing.
 - Cell-level:
-
-This repo decodes head direction from anterodorsal thalamic (ADn) population activity during REM
-sleep without using any measured head angle, measures the diffusion constant *D* of the decoded
-angle, and decomposes the variability in *D* into between-mouse and within-mouse components.
-
-The decoding method is SPUD (spline parameterization for unsupervised decoding) from
-**Chaudhuri et al. (2019),** [*The intrinsic population dynamics of a canonical cognitive
-circuit*](https://www.nature.com/articles/s41593-019-0460-x), Nature Neuroscience. The data is
-[DANDI dandiset 000056](https://dandiarchive.org/dandiset/000056) (Peyrache et al. 2015), read via
-[pynapple](https://pynapple.org/).
-
-**Headline finding: the variance decomposition is a null result.** The ICC lands around 0.5, but
-with only ~6 mice its confidence interval spans nearly the whole range and includes zero. The
-honest statement is *"between-mouse and within-mouse variability are not separable at this sample
-size"*, not *"mice differ from each other"*. Details in
-[`docs/variance-decomposition.md`](./docs/porting/results-variance-decomposition.md).
+  - **Tuning to angular speed**: bin the animal's behavioral angular velocity and plot mean firing rate against it.
+  - **Neuron intrinsic timescale**: Denoted τ and also called the spike-train autocorrelation decay constant. Measures how long a neuron's activity stays correlated with itself over time.
 
 ---
 
 ## Start here
 
+Work in this repo is organised as **questions**. Each has an id (`diffusion1`, `variance1`, …) and
+four assets sharing that id: an instructions doc, a results template, a generated results doc, and
+an experiment module.
+
 | If you want to… | Read |
 |---|---|
-| Know what the paper specifies, and where we depart from it | [`docs/methods.md`](./docs/methods.md) |
-| Run everything yourself | [`docs/REPRODUCING.md`](./docs/porting/REPRODUCING.md) |
-| See the diffusion constants per session | [`docs/rem-diffusion.md`](./docs/porting/results-rem-diffusion.md) |
-| See the between/within-mouse decomposition | [`docs/variance-decomposition.md`](./docs/porting/results-variance-decomposition.md) |
-| See how *D* depends on the measurement window (200 ms vs 500 ms vs 5 s) | [`docs/2026-08-03-long-timescale-diffusion.md`](./docs/long_D/2026-08-03-long-timescale-diffusion.md) |
-| Reproduce that timescale analysis | [`docs/REPRODUCING-timescale.md`](./docs/long_D/REPRODUCING-timescale.md) |
-| Understand how this code got here, and what was wrong before | [`docs/2026-08-02-port-rem-diffusion-and-variance.md`](./docs/porting/2026-08-02-port-rem-diffusion-and-variance.md) |
+| **Add or change an experiment** | [`CLAUDE.md`](./CLAUDE.md) — the workflow, where files go, the rules |
+| See what questions exist | `uv run hd-exp list` |
+| Read a question's methods | `docs/exp_instructions/instructions-<qid>.md` |
+| Read a question's results | `docs/exp_results/results_<qid>.md` |
+| The original diffusion-constant methods (the paper's spec) | [`docs/methods.md`](./docs/methods.md) |
+| How this code got here, and what was wrong before | [`docs/porting/2026-08-02-port-rem-diffusion-and-variance.md`](./docs/porting/2026-08-02-port-rem-diffusion-and-variance.md) |
+
+### Questions so far
+
+| id | Question | Results |
+|---|---|---|
+| `diffusion1` | How does *D* depend on the measurement window? | [results](./docs/exp_results/results_diffusion1.md) |
+| `diffusion2` | Is the long-lag sub-diffusion real, or made by the decoder/estimator? | [results](./docs/exp_results/results_diffusion2.md) |
+| `variance1` | Is between-mouse variance in *D* larger than within-mouse? | [results](./docs/exp_results/results_variance1.md) |
+| `variance2` | How does variance partition across bouts, sessions and mice? | [results](./docs/exp_results/results_variance2.md) |
+| `bouts1` | Does REM bout context predict *D*? | [results](./docs/exp_results/results_bouts1.md) |
+
+`docs/porting/`, `docs/long_D/` and `docs/bout_level/` are historical narrative records from before
+this structure existed. They are kept for provenance; new work does not go there.
 
 ## Quick start
 
@@ -58,79 +62,47 @@ uv run --with dandi dandi download DANDI:000056     # the only input data
 cp .envrc.example .envrc && $EDITOR .envrc          # point at the download; set OUTPUT_PATH
 source .envrc                                        # or: direnv allow
 
-uv run hd-diffusion --scope all                      # the sweep (hours)
-uv run hd-variance                                   # the decomposition (minutes)
-uv run hd-timescale                                  # D at 200 ms / 500 ms / 5 s (~2 min)
+uv run hd-diffusion --scope all                      # NWB -> outputs/cache (hours; once)
+uv run hd-exp run variance1                          # any question (seconds to minutes)
 ```
-
-Full instructions, including quicker subsets and the diagnostic runs, are in
-[`docs/REPRODUCING.md`](./docs/porting/REPRODUCING.md).
 
 ## Repository structure
 
-**One scientific question is the unit of work.** Each has an id (`diffusion1`), an instructions doc
-stating the question and its methods, a results doc generated from a template, and a thin experiment
-module. `uv run hd-exp list` enumerates them.
-
 ```
 docs/
-  exp_instructions/instructions-<qid>.md    the question, its motivation, its methods
-  exp_results/results_<qid>.in              hand-written template: prose + @TOKEN@
-  exp_results/results_<qid>.md              GENERATED — never edit; edit the .in
+  exp_instructions/instructions-<qid>.md    the question and its methods      (hand-written)
+  exp_results/results_<qid>.in              prose + @TOKEN@                   (hand-written)
+  exp_results/results_<qid>.md              the rendered document             (GENERATED)
   methods.md                                the paper's spec and our departures from it
-  porting/ long_D/ bout_level/              historical narrative records
+  porting/ long_D/ bout_level/              historical records
 src/
   config.py env.py                          constants; where data and outputs live
   loader.py rates.py manifold.py            DANDI -> rates -> Isomap -> ring
   diffusion.py timescale.py bouts.py        the estimators
-  variance.py sweep.py                      the mixed model; the cache and parquet plumbing
-  analysis/    io, curves, stats, values, render   reusable primitives
-  figures/     base, strips, curves               one panel grammar per figure type
-  collect/     timescale, bouts                   sweeps that build per-session tables
-  experiments/ <qid>.py + registry                one module per question
-  cli/         exp.py (hd-exp), diffusion.py (hd-diffusion)
-  spud/        vendored code from Chaudhuri et al. (2019), unchanged
-scripts/       provenance tools: migrate_cache, verify_cache, synthetic_ring_control
+  variance.py sweep.py                      the mixed model; cache and parquet plumbing
+  analysis/   io, stats, curves, values, render     reusable primitives
+  figures/    base, strips, curves                  shared figure grammars
+  collect/    timescale, bouts                      sweeps building per-session tables
+  experiments/<qid>.py + registry                   one module per question
+  cli/        exp.py (hd-exp), diffusion.py (hd-diffusion)
+  spud/       vendored from Chaudhuri et al. (2019), unchanged
+scripts/      provenance tools: migrate_cache, verify_cache, synthetic_ring_control
 tests/
 outputs/
-  cache/       decode cache (tracked, ~22 MB) — lets a fresh clone run every analysis
-  results/     per-session tables and <qid>_values.json
-  figures/     <qid>_<description>.png
+  cache/      decode cache (tracked, ~22 MB) — every question reads it, nothing recomputes it
+  results/    per-session tables and <qid>_values.json
+  figures/    <qid>_<expid>_<description>.png
 ```
 
-Only two console scripts survive: **`hd-diffusion`**, the one expensive collector (NWB → cache), and
-**`hd-exp`**, which runs everything else. Analyses that used to be separate CLIs are now experiments
-sharing the primitives in `analysis/` and `figures/`.
+Two console scripts only: **`hd-diffusion`** (the one expensive collector) and **`hd-exp`**
+(everything else).
 
-### How a question runs
+### How a result stays trustworthy
 
-```bash
-uv run hd-exp list                  # what exists
-uv run hd-exp collect diffusion1    # only for questions needing new tables
-uv run hd-exp run     diffusion1    # analyse + render
-uv run hd-exp check   diffusion1    # recompute and diff against committed values
-```
-
-`analyse` writes named values plus provenance (resolved config, git commit, timestamp) to
-`<qid>_values.json`; `render` substitutes them into the `.in`. **An unresolved token is a hard
-error**, so a results file cannot render with a gap, and re-running an analysis cannot overwrite
-prose.
-
-> **Note on imports.** Modules are top-level names (`config`, `env`, `loader`), so an inherited
-> `PYTHONPATH` from another checkout can shadow them. Nothing here needs `PYTHONPATH`; `env.py`
-> raises with an explanation if it detects the shadow.
-
-### Where the results live
-
-| Artefact | Path |
-|---|---|
-| Per-session diffusion constants | `$OUTPUT_PATH/results/diffusion_Mouse<m>.parquet` |
-| Decode cache (embedding + decoded angles) | `$OUTPUT_PATH/results/cache/*.npz` |
-| D across measurement windows | `$OUTPUT_PATH/results/timescale_Mouse<m>_ADn.parquet` |
-| Figures | `$OUTPUT_PATH/results/*.png` |
-
-The parquets are the primary artefact. The cache exists so that any new diffusion metric is a
-seconds-long recompute instead of hours of refitting.
+`analyse()` writes named values plus provenance — resolved config, git commit, timestamp — to
+`<qid>_values.json`. `render` substitutes them into the `.in`. **A token with no value is a hard
+error**, so a results file cannot render with a gap, and re-running an analysis cannot overwrite a
+word of interpretation. `hd-exp check <qid>` recomputes and fails on any drift.
 
 ## Scope
 

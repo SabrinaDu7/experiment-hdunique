@@ -107,16 +107,6 @@ What this does *not* establish is why. See `diffusion2`.
 | ADn+PoS | 13 | 0.64 | 0.59 | 0.55 | 0.50 | 0.43 | 0.41 | 0.39 |
 | PoS | 20 | 4.21 | 3.67 | 2.55 | 1.61 | 1.20 | 0.99 | 0.83 |
 
-**Figure — D by cell set, 1 s window** (`diffusion1_exp2_cellset_1000ms.png`)
-
-![D by cell set, 1 s window](../../outputs/figures/diffusion1_exp2_cellset_1000ms.png)
-
-**Figure — D by cell set, 5 s window** (`diffusion1_exp2_cellset_5000ms.png`)
-
-![D by cell set, 5 s window](../../outputs/figures/diffusion1_exp2_cellset_5000ms.png)
-
-Note the panels share a D scale with each other but not with the exp1 figure above.
-
 ### Interpretation
 
 **The cell sets converge as the window lengthens.** PoS sits 4.7× above ADn at
@@ -162,13 +152,12 @@ uv run hd-exp check   diffusion1
 
 ## Provenance
 
-Generated 2026-08-04T17:50:32+00:00 from commit `7089052`.
+Generated 2026-08-04T21:29:18+00:00 from commit `f0e6970`.
 
 | config | value |
 |---|---|
 | `cell_set` | `ADn` |
 | `cell_sets` | `['ADn', 'ADn+PoS', 'PoS']` |
-| `cellset_figure_windows_ms` | `[1000, 5000]` |
 | `dt` | `0.1` |
 | `estimator` | `circular` |
 | `figure_windows_ms` | `[200, 1000, 5000]` |
@@ -178,5 +167,5 @@ Generated 2026-08-04T17:50:32+00:00 from commit `7089052`.
 
 | input | value |
 |---|---|
-| `figures` | `{'FIG_CELLSET_1000': 'outputs/figures/diffusion1_exp2_cellset_1000ms.png', 'FIG_CELLSET_5000': 'outputs/figures/diffusion1_exp2_cellset_5000ms.png', 'FIG_WINDOWS': 'outputs/figures/diffusion1_exp1_windows_ADn.png'}` |
+| `figures` | `{'FIG_WINDOWS': 'outputs/figures/diffusion1_exp1_windows_ADn.png'}` |
 | `input_sessions` | `32` |

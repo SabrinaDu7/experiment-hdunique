@@ -9,12 +9,9 @@
       "D_std"
     ]
   },
-  "generated": "2026-08-04T17:51:03+00:00",
-  "git_commit": "7089052",
+  "generated": "2026-08-04T21:29:21+00:00",
+  "git_commit": "f0e6970",
   "notes": {
-    "figures": {
-      "FIG_BOUTS_BY_MOUSE": "outputs/figures/variance2_exp1_bouts_by_mouse.png"
-    },
     "input_bouts": 537
   },
   "question_id": "variance2",
@@ -28,7 +25,6 @@
     "CORRECTED_VAR_OUTER_PCT": "2.2",
     "CORRECTED_VAR_RESID": "0.255",
     "CORRECTED_VAR_RESID_PCT": "79.1",
-    "FIG_BOUTS_BY_MOUSE": "**Figure \u2014 every bout, grouped by mouse** (`variance2_exp1_bouts_by_mouse.png`)\n\n![every bout, grouped by mouse](../../outputs/figures/variance2_exp1_bouts_by_mouse.png)",
     "N_BOUTS": "537",
     "N_MICE": "6",
     "N_SESSIONS": "32",

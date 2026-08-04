@@ -81,10 +81,6 @@ Three sessions spanning the cell-count range:
 | Mouse17-130129 | 25 | 12 | 1.40 | 7 | 1.65 | 1.18 | 0.77 |
 | Mouse20-130515 | 6 | 10 | 4.88 | 8 | 4.88 | 1.00 | 0.83 |
 
-**Figure — three sessions, bouts split by exit state** (`bouts1_exp2_exit_state.png`)
-
-![three sessions, bouts split by exit state](../../outputs/figures/bouts1_exp2_exit_state.png)
-
 ### Interpretation
 
 The paired test agrees with the fixed-effects model: no effect. In the three named sessions the two
@@ -131,7 +127,7 @@ uv run hd-exp run bouts1 --plot-sessions 25-140130 28-140313
 
 ## Provenance
 
-Generated 2026-08-04T17:51:06+00:00 from commit `7089052`.
+Generated 2026-08-04T21:29:23+00:00 from commit `f0e6970`.
 
 | config | value |
 |---|---|
@@ -144,5 +140,4 @@ Generated 2026-08-04T17:51:06+00:00 from commit `7089052`.
 
 | input | value |
 |---|---|
-| `figures` | `{'FIG_EXIT_STATE': 'outputs/figures/bouts1_exp2_exit_state.png'}` |
 | `input_bouts` | `537` |
