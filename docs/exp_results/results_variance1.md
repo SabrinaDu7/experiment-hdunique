@@ -6,7 +6,7 @@
 
 > **Question.** Each mouse contributes several REM sessions, each with one diffusion constant *D*.
 > Is the spread in *D* driven more by **which animal** it came from, or by **which session** of that
-> animal? (ie more between animal or within animal variance?)
+> animal?
 
 Methods and rationale: [`instructions-variance1.md`](../exp_instructions/instructions-variance1.md).
 
@@ -34,14 +34,6 @@ Per-mouse shrunken estimates:
 | 24 | 2 | 0.408 | 0.287 | 0.568 | 0.715 |
 | 17 | 8 | 0.427 | 0.160 | 0.587 | 0.625 |
 | 20 | 1 | 0.512 | 0.362 | 0.672 | 1.040 |
-
-**Figure — every gated session, grouped by mouse (≥15 cells)** (`variance1_exp1_by_mouse_min15.png`)
-
-![every gated session, grouped by mouse (≥15 cells)](../../outputs/figures/variance1_exp1_by_mouse_min15.png)
-
-Spread *between* the bars is the between-mouse component; spread *within* a column is
-within-mouse. The eye finds the mice visibly separated — the model's point is that six draws cannot
-certify that separation exceeds chance.
 
 ### Interpretation
 
@@ -88,10 +80,6 @@ Restricted to sessions with **14-28 ADn cells**: 21 sessions,
 | 17 | 8 | 25.00 | 1.58 |
 | 24 | 3 | 16.00 | 2.06 |
 | 20 | 1 | 16.00 | 2.83 |
-
-**Figure — the same comparison restricted to 14–28 ADn cells** (`variance1_exp3_matched_band.png`)
-
-![the same comparison restricted to 14–28 ADn cells](../../outputs/figures/variance1_exp3_matched_band.png)
 
 - **ICC = 0.647**, 95 % CI [0.004, 0.889] (ANOVA 0.635)
 - **Kruskal-Wallis across mice: p = 0.0079**
@@ -156,7 +144,7 @@ uv run hd-exp check variance1                        # re-run and diff against c
 
 ## Provenance
 
-Generated 2026-08-04T18:01:04+00:00 from commit `7089052`.
+Generated 2026-08-04T21:41:16+00:00 from commit `e94a17a`.
 
 | config | value |
 |---|---|
@@ -173,5 +161,4 @@ Generated 2026-08-04T18:01:04+00:00 from commit `7089052`.
 | input | value |
 |---|---|
 | `estimator` | `D_bout_aware` |
-| `figures` | `{'FIG_BY_MOUSE': 'outputs/figures/variance1_exp1_by_mouse_min15.png', 'FIG_MATCHED': 'outputs/figures/variance1_exp3_matched_band.png'}` |
 | `input_sessions` | `32` |
