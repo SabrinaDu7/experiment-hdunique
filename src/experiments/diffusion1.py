@@ -7,9 +7,9 @@ import pandas as pd
 
 from analysis import io, stats
 from analysis.values import Values
-from diffusion import window_slope
-from env import figures_dir
+from core.env import figures_dir
 from figures.strips import plot_grouped_strip
+from metrics.diffusion import window_slope
 
 QUESTION_ID = "diffusion1"
 EXPERIMENTS = (

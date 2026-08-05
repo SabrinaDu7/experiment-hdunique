@@ -6,8 +6,8 @@ import pandas as pd
 
 from analysis import io, stats
 from analysis.values import Values
-from config import DANDI_MICE, FIT_WINDOWS_MS
-from variance import (
+from core.config import DANDI_MICE, FIT_WINDOWS_MS
+from metrics.variance import (
     anova_icc,
     bootstrap_components,
     component_cis,

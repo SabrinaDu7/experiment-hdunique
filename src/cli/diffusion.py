@@ -15,12 +15,11 @@ import time
 import numpy as np
 import tyro
 
-import diffusion as dif
-import loader
-import plotting
-import sweep
-from config import DIFFUSION_LAGS, HEADLINE_WINDOW_MS, DiffusionConfig
-from env import cache_dir, results_dir
+from core.config import DIFFUSION_LAGS, HEADLINE_WINDOW_MS, DiffusionConfig
+from core.env import cache_dir, results_dir
+from decode import loader, sweep
+from figures import panels
+from metrics import diffusion as dif
 
 
 def _print_row(*, row: dict[str, object], elapsed: float) -> None:
@@ -38,8 +37,8 @@ def _print_row(*, row: dict[str, object], elapsed: float) -> None:
 
 def _plot_session(*, cfg: DiffusionConfig, row: dict[str, object]) -> None:
     """Save the single-session diffusion-curve figure."""
-    plotting.plot_session_diffusion(
-        panel=plotting.DiffusionPanel(
+    panels.plot_session_diffusion(
+        panel=panels.DiffusionPanel(
             title=f"{row['session_id']}  ({row['n_cells']} {row['cell_set']} cells)",
             lags_s=np.array(DIFFUSION_LAGS, dtype=float) * cfg.dt,
             curve=np.array(row["curve_rad2"], dtype=float),

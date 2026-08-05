@@ -7,7 +7,7 @@ import pandas as pd
 
 from analysis import io, stats
 from analysis.values import Values
-from sweep import iter_cache
+from decode.sweep import iter_cache
 
 QUESTION_ID = "variance2"
 EXPERIMENTS = (

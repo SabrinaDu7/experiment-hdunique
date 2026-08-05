@@ -17,12 +17,12 @@ import dataclasses
 import numpy as np
 import pandas as pd
 
-import diffusion as dif
-import plotting
-import timescale
-from config import TIMESCALE_MAX_LAG, TIMESCALE_WINDOWS_MS
-from env import results_dir
-from sweep import iter_cache
+from core.config import TIMESCALE_MAX_LAG, TIMESCALE_WINDOWS_MS
+from core.env import results_dir
+from decode.sweep import iter_cache
+from figures import panels
+from metrics import diffusion as dif
+from metrics import timescale
 
 
 @dataclasses.dataclass(frozen=True)
@@ -149,7 +149,7 @@ def run(*, cfg: TimescaleConfig) -> None:
         frame.to_parquet(path, index=False)
         print(f"  -> {len(frame)} row(s) in {path.name}")
         if cfg.make_plot:
-            plotting.plot_timescale_curves(
+            panels.plot_timescale_curves(
                 mouse=mouse,
                 rows=rows,
                 dt=cfg.dt,

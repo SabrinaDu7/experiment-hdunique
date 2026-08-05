@@ -21,3 +21,7 @@ outputs/figures/*
 # Scratch space for quick one-offs; the .gitkeep is tracked, nothing else is.
 throwaway/*
 !throwaway/.gitkeep
+
+# The Rust `list` binary is built, not shipped; `hd-exp list` falls back to the Python
+# implementation when it is absent. See rust/hd-exp-list/.
+rust/*/target/

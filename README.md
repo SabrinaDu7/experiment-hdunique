@@ -76,11 +76,10 @@ docs/
   methods.md                                the paper's spec and our departures from it
   porting/ long_D/ bout_level/              historical records
 src/
-  config.py env.py                          constants; where data and outputs live
-  loader.py rates.py manifold.py            DANDI -> rates -> Isomap -> ring
-  diffusion.py timescale.py bouts.py        the estimators
-  variance.py sweep.py                      the mixed model; cache and parquet plumbing
-  analysis/   io, stats, curves, values, render     reusable primitives
+  core/       config, env                           constants; where data and outputs live
+  decode/     loader, rates, manifold, sweep        DANDI -> rates -> Isomap -> ring -> cache
+  metrics/    diffusion, timescale, bouts, variance the measured quantities; new metrics land here
+  analysis/   io, stats, values, render             reusable primitives
   figures/    base, strips, curves                  shared figure grammars
   collect/    timescale, bouts                      sweeps building per-session tables
   experiments/<qid>.py + registry                   one module per question

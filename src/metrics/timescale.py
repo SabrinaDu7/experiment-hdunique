@@ -1,4 +1,7 @@
-"""Diffusion of the decoded angle over long lags, where circular wrapping stops being ignorable.
+"""Long-lag behaviour of the decoded angle, where circular wrapping stops being ignorable.
+
+The mean-squared-displacement machinery itself lives in `metrics.diffusion`; this module adds the
+diagnostics that only matter once lags are long enough for wrapping to bite.
 
 The 200 ms estimator in `diffusion.py` measures ⟨Δα²⟩ from *wrapped* angular differences, which
 fold into (−π, π]. That is harmless while the typical displacement is far below π. It stops being
@@ -32,39 +35,14 @@ from beartype import beartype
 from jaxtyping import Float, jaxtyped
 
 import spud.angle_fns as af
-
-#: Upper bound on wrapped ⟨Δα²⟩: the variance of a uniformly distributed angle, π²/3.
-WRAPPED_CEILING: float = float(np.pi**2 / 3.0)
-
-#: Per-bin steps above this magnitude have an ambiguous unwrap direction. π/2 is deliberately
-#: conservative: the sign is only truly a coin flip at π, but a step of π/2 already means the
-#: decoded angle moved a quarter of the ring in 100 ms.
-UNWRAP_RISK_THRESHOLD: float = float(np.pi / 2)
-
-#: Estimator names, in the order they are reported.
-METHODS: tuple[str, ...] = ("wrapped", "unwrapped", "circular")
-
-
-@jaxtyped(typechecker=beartype)
-def split_bouts(
-    *, angles: Float[np.ndarray, " time"], bout_lengths: list[int]
-) -> list[Float[np.ndarray, " _"]]:
-    """Split a concatenated decoded trace back into its REM bouts."""
-    return list(np.split(angles, np.cumsum(bout_lengths)[:-1]))
-
-
-@jaxtyped(typechecker=beartype)
-def unwrap_bout(*, bout: Float[np.ndarray, " time"]) -> Float[np.ndarray, " time"]:
-    """Lift one bout's wrapped angles onto the real line by accumulating signed per-bin steps.
-
-    Each step is taken as the shortest way round, so the result is exact as long as the true
-    per-bin motion never exceeds π. Unwrapping is done per bout and never across a bout boundary,
-    where the true displacement is unknowable.
-    """
-    if len(bout) < 2:
-        return np.zeros(len(bout))
-    steps = af.shifted_angular_diffs(bout, 1)
-    return np.cumsum(np.concatenate([[0.0], steps]))
+from metrics.diffusion import (
+    METHODS,
+    UNWRAP_RISK_THRESHOLD,
+    WRAPPED_CEILING,
+    msd_curve,
+    split_bouts,
+    unwrap_bout,
+)
 
 
 @jaxtyped(typechecker=beartype)
@@ -79,46 +57,6 @@ def unwrap_risk(*, angles: Float[np.ndarray, " time"], bout_lengths: list[int]) 
         [af.shifted_angular_diffs(b, 1) for b in split_bouts(angles=angles, bout_lengths=bout_lengths) if len(b) > 1]
     )
     return float((np.abs(steps) > UNWRAP_RISK_THRESHOLD).mean())
-
-
-@jaxtyped(typechecker=beartype)
-def msd_curve(
-    *,
-    angles: Float[np.ndarray, " time"],
-    bout_lengths: list[int],
-    lags: tuple[int, ...],
-    method: str,
-) -> Float[np.ndarray, " lag"]:
-    """Mean squared angular displacement at each lag (in bins), bout-aware, in rad².
-
-    `method` selects one of the three estimators documented at the top of this module. A lag longer
-    than a bout simply contributes no pairs from that bout; a lag longer than *every* bout yields
-    NaN at that lag rather than a silently empty mean.
-    """
-    if method not in METHODS:
-        raise ValueError(f"Unknown method {method!r}; expected one of {METHODS}.")
-
-    bouts = split_bouts(angles=angles, bout_lengths=bout_lengths)
-    if method == "unwrapped":
-        bouts = [unwrap_bout(bout=b) for b in bouts]
-
-    out = []
-    for lag in lags:
-        usable = [b for b in bouts if len(b) > lag]
-        if not usable:
-            out.append(float("nan"))
-            continue
-        if method == "unwrapped":
-            pooled = np.concatenate([b[lag:] - b[:-lag] for b in usable])
-            out.append(float(np.mean(pooled**2)))
-        else:
-            pooled = np.concatenate([af.shifted_angular_diffs(b, lag) for b in usable])
-            if method == "wrapped":
-                out.append(float(np.mean(pooled**2)))
-            else:  # circular
-                resultant = float(np.mean(np.cos(pooled)))
-                out.append(float(-2.0 * np.log(resultant)) if resultant > 0 else float("nan"))
-    return np.array(out)
 
 
 @jaxtyped(typechecker=beartype)
@@ -204,3 +142,12 @@ def pairs_per_lag(*, bout_lengths: list[int], lags: tuple[int, ...]) -> list[int
     as the 200 ms one.
     """
     return [int(sum(max(0, length - lag) for length in bout_lengths)) for lag in lags]
+
+
+#: Re-exported so callers can keep importing the MSD machinery from here; the implementation is in
+#: `metrics.diffusion`, which is the single definition of a diffusion curve in this repo.
+__all__ = [
+    "METHODS", "UNWRAP_RISK_THRESHOLD", "WRAPPED_CEILING", "anomalous_exponent", "decorrelation_lag",
+    "displacement_kurtosis", "msd_curve", "pairs_per_lag", "resultant_length", "split_bouts",
+    "unwrap_bout", "unwrap_risk",
+]

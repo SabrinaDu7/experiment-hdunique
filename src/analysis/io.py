@@ -12,8 +12,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from env import results_dir
-from sweep import CacheEntry, iter_cache
+from core.env import results_dir
+from decode.sweep import CacheEntry, iter_cache
 
 #: Filename stems of the per-mouse tables the pipeline writes.
 DIFFUSION_STEM = "diffusion"

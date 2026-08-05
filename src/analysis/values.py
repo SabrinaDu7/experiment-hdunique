@@ -22,7 +22,7 @@ from typing import Any
 
 import pandas as pd
 
-from env import results_dir
+from core.env import results_dir
 
 
 def _git_commit() -> str:

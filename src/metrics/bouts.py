@@ -27,7 +27,7 @@ import pynapple as nap
 from beartype import beartype
 from jaxtyping import Float, jaxtyped
 
-import diffusion as dif
+from metrics import diffusion as dif
 
 #: Label used when a bout is the first or last epoch in the recording.
 BOUNDARY_STATE: str = "none"
@@ -109,8 +109,10 @@ def bout_diffusion(
     if not usable:
         return {f"D_{w}": float("nan") for w in windows_ms} | {"nugget": float("nan")}
 
-    curve = np.array(
-        [float(np.mean(dif.af.shifted_angular_diffs(angles, lag) ** 2)) for lag in usable]
+    # One bout, so the bout-aware and pooled curves coincide; this routes through the single
+    # MSD implementation rather than repeating it.
+    curve = dif.msd_curve(
+        angles=angles, bout_lengths=[len(angles)], lags=usable, method="wrapped"
     )
     for window_ms in windows_ms:
         n_needed = round(window_ms / 1000.0 / dt)

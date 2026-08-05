@@ -27,7 +27,10 @@
 | `docs/exp_results/results_<qid>.in` | the results **template**: all prose and interpretation, with `@TOKEN@` where numbers go | **you, by hand** |
 | `docs/exp_results/results_<qid>.md` | the rendered document | **generated — never edit** |
 | `src/experiments/<qid>.py` | `Config`, optional `collect()`, `analyse()` | you |
-| `src/analysis/` | reusable primitives: `io`, `stats`, `curves`, `values`, `render` | you, when logic would otherwise repeat |
+| `src/core/` | configuration surface and path contract | rarely |
+| `src/decode/` | raw recordings -> decoded angle, and the cache | rarely |
+| `src/metrics/` | **the measured quantities — a new metric goes here** | you |
+| `src/analysis/` | reusable primitives: `io`, `stats`, `values`, `render` | you, when logic would otherwise repeat |
 | `src/figures/` | figure grammars, shared across questions | you |
 | `src/collect/` | sweeps that build per-session tables from the decode cache | you |
 | `outputs/cache/` | the decode cache — expensive, tracked, shared by every question | `hd-diffusion` |
@@ -86,7 +89,23 @@ uv run hd-exp collect <qid>        # only for questions that declare collect()
 uv run hd-exp run     <qid>        # analyse + render
 uv run hd-exp check   <qid>        # recompute and diff against committed values
 uv run hd-diffusion --scope all    # the one expensive collector: NWB -> outputs/cache (hours)
+
+cargo build --release --manifest-path rust/hd-exp-list/Cargo.toml   # optional: fast `list`
 ```
+
+`hd-exp list` is implemented in Rust (`rust/hd-exp-list/`), because listing questions otherwise
+had to import every question module — ~2.6 s of sklearn/scipy/pandas/pynapple — to read three
+attributes off them. The binary reads `QUESTION_IDS`, `PLANNED`, each docstring, each
+`EXPERIMENTS` and each `collect` out of the source text instead, in ~2 ms. `src/experiments/`
+remains the single source of truth; the binary keeps no copy of the registry.
+
+If the binary is not built, `hd-exp list` falls back to the original by-import implementation
+(`cli.exp._list_python`) and behaves identically, just slowly. `tests/test_exp_list.py` pins the
+two to byte-identical output, so a question module written in a form the parser cannot read fails
+the suite rather than silently vanishing from the listing.
+
+The other sub-commands genuinely need the scientific stack, so they still pay for it — but their
+imports now live inside the functions that use them, not at module scope.
 
 Modules are top-level names (`config`, `env`, `loader`), so an inherited `PYTHONPATH` from another
 checkout can shadow them; `env.py` raises with an explanation if it detects that.

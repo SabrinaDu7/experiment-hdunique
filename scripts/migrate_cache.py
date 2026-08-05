@@ -27,11 +27,9 @@ from pathlib import Path
 import numpy as np
 import tyro
 
-import loader
-import rates
-import sweep
-from config import PAPER_REM_TARGETS, DiffusionConfig
-from env import cache_dir
+from core.config import PAPER_REM_TARGETS, DiffusionConfig
+from core.env import cache_dir
+from decode import loader, rates, sweep
 
 
 @dataclasses.dataclass(frozen=True)

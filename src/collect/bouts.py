@@ -17,12 +17,12 @@ import dataclasses
 import numpy as np
 import pandas as pd
 
-import bouts
-import loader
-import plotting
-from config import DIFFUSION_LAGS, HEADLINE_WINDOW_MS
-from env import results_dir
-from sweep import iter_cache
+from core.config import DIFFUSION_LAGS, HEADLINE_WINDOW_MS
+from core.env import results_dir
+from decode import loader
+from decode.sweep import iter_cache
+from figures import panels
+from metrics import bouts
 
 #: Lags used for the per-bout curve: the same 100..500 ms the headline estimator fits over.
 BOUT_LAGS: tuple[int, ...] = DIFFUSION_LAGS
@@ -135,7 +135,7 @@ def run(*, cfg: BoutConfig) -> None:
         frames = {k: v for k, v in frames.items() if len(v)}
         if frames:
             results_dir().mkdir(parents=True, exist_ok=True)
-            plotting.plot_bout_exit_strip(
+            panels.plot_bout_exit_strip(
                 frames=frames, save_path=results_dir() / "bout_exit_strip.png"
             )
 

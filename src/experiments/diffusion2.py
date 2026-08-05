@@ -6,7 +6,7 @@ import pandas as pd
 
 from analysis import io, stats
 from analysis.values import Values
-from env import results_dir
+from core.env import results_dir
 
 QUESTION_ID = "diffusion2"
 EXPERIMENTS = ("diffusion2_exp1",)  # synthetic free walk pushed through each session's own ring

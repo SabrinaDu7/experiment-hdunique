@@ -36,11 +36,11 @@ from beartype import beartype
 from jaxtyping import Float, jaxtyped
 
 import spud.manifold_fit_and_decode_fns as mff
-import timescale
-from config import DiffusionConfig
-from env import results_dir
-from manifold import fit_best_ring
-from sweep import iter_cache
+from core.config import DiffusionConfig
+from core.env import results_dir
+from decode.manifold import fit_best_ring
+from decode.sweep import iter_cache
+from metrics import timescale
 
 #: Lags and fit range for the anomalous exponent, matching the long-timescale analysis.
 LAGS: tuple[int, ...] = tuple(range(1, 51))

@@ -32,8 +32,8 @@ import pandas as pd
 import statsmodels.formula.api as smf
 from statsmodels.regression.mixed_linear_model import MixedLMResults
 
-from config import HEADLINE_WINDOW_MS
-from diffusion import window_column
+from core.config import HEADLINE_WINDOW_MS
+from metrics.diffusion import window_column
 
 
 def d_column(*, window_ms: int, estimator: str = "D") -> str:

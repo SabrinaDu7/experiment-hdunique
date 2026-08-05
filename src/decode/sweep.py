@@ -18,18 +18,16 @@ import pandas as pd
 from beartype import beartype
 from jaxtyping import Float, jaxtyped
 
-import diffusion as dif
-import loader
-import manifold
-import rates
-from config import (
+from core.config import (
     DIFFUSION_LAGS,
     FIT_WINDOWS_MS,
     HEADLINE_WINDOW_MS,
     PAPER_REM_TARGETS,
     DiffusionConfig,
 )
-from env import cache_dir, results_dir
+from core.env import cache_dir, results_dir
+from decode import loader, manifold, rates
+from metrics import diffusion as dif
 
 #: Parquet rows are replaced on this key; other cell sets / fit fractions are preserved.
 MERGE_KEY: list[str] = ["session_id", "cell_set", "fit_frac"]

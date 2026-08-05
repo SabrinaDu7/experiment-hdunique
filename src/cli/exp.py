@@ -16,28 +16,43 @@ compares against the committed `values.json`, exiting non-zero on any drift.
 """
 
 import dataclasses
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
 
-import tyro
-
 import experiments
-from analysis.render import render
-from analysis.values import Values, load_values
 
 #: Repository root, so docs are found regardless of the working directory.
-DOCS_ROOT = Path(__file__).resolve().parent.parent.parent / "docs"
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+DOCS_ROOT = REPO_ROOT / "docs"
+
+#: The Rust implementation of `list`. Importing the question modules to read three attributes off
+#: them costs ~2.6 s of sklearn/scipy/pandas/pynapple imports; this reads them out of the source
+#: text in ~2 ms. Absent on a checkout that has not run `cargo build`, hence `_list_python`.
+LIST_BIN = REPO_ROOT / "rust" / "hd-exp-list" / "target" / "release" / "hd-exp-list"
+
+#: The heavy imports (`tyro`, `analysis`) live inside the functions that need them, so that `list`
+#: — the one sub-command that needs none of them — does not pay for them.
 
 
 def _config_for(*, question_id: str, argv: list[str]) -> Any:
     """Parse the question's own Config from the remaining command-line arguments."""
+    import tyro
+
     module = experiments.load(question_id)
     return tyro.cli(module.Config, args=argv)
 
 
 def cmd_list() -> int:
     """Print every registered question, its experiments, and whether it has a collect step."""
+    if LIST_BIN.is_file():
+        return subprocess.run([str(LIST_BIN), str(REPO_ROOT)], check=False).returncode
+    return _list_python()
+
+
+def _list_python() -> int:
+    """The listing by import, kept as the reference the Rust binary is tested against."""
     for question_id in experiments.QUESTION_IDS:
         if question_id in experiments.PLANNED:
             print(f"  {question_id:12s} [{'planned':15s}] not implemented yet")
@@ -64,6 +79,8 @@ def cmd_collect(*, question_id: str, argv: list[str]) -> int:
 
 def cmd_analyse(*, question_id: str, argv: list[str]) -> int:
     """Run a question's analysis and write its values file."""
+    from analysis.values import Values
+
     module = experiments.load(question_id)
     cfg = _config_for(question_id=question_id, argv=argv)
     values = Values(question_id=question_id, config=_as_dict(cfg))
@@ -75,6 +92,9 @@ def cmd_analyse(*, question_id: str, argv: list[str]) -> int:
 
 def cmd_render(*, question_id: str) -> int:
     """Render a question's results document from its template and values."""
+    from analysis.render import render
+    from analysis.values import load_values
+
     out = render(
         question_id=question_id, values=load_values(question_id=question_id), docs_root=DOCS_ROOT
     )
@@ -84,6 +104,8 @@ def cmd_render(*, question_id: str) -> int:
 
 def cmd_check(*, question_id: str, argv: list[str]) -> int:
     """Recompute and compare against the committed values file; non-zero exit on drift."""
+    from analysis.values import Values, load_values
+
     before = load_values(question_id=question_id)["tokens"]
     module = experiments.load(question_id)
     cfg = _config_for(question_id=question_id, argv=argv)

@@ -17,12 +17,9 @@ import dataclasses
 import numpy as np
 import tyro
 
-import diffusion as dif
-import loader
-import manifold
-import rates
-import sweep
-from config import DIFFUSION_LAGS, HEADLINE_WINDOW_MS, DiffusionConfig
+from core.config import DIFFUSION_LAGS, HEADLINE_WINDOW_MS, DiffusionConfig
+from decode import loader, manifold, rates, sweep
+from metrics import diffusion as dif
 
 
 @dataclasses.dataclass(frozen=True)
