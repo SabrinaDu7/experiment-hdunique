@@ -15,6 +15,7 @@ from metrics.variance import (
     fit_lmm,
     gate_sessions,
     mouse_effects,
+    variance_components,
 )
 
 QUESTION_ID = "variance1"
@@ -50,8 +51,6 @@ class Config:
 
 def _decompose(*, frame: pd.DataFrame, cfg: Config) -> dict[str, object]:
     """Fit the two-level model on one gated frame and summarise it with bootstrap intervals."""
-    from variance import variance_components
-
     components = variance_components(result=fit_lmm(df=frame))
     boot = bootstrap_components(df=frame, n_boot=cfg.n_bootstrap, seed=cfg.seed)
     cis = component_cis(boot=boot)
