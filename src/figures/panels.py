@@ -488,3 +488,74 @@ def bout_speed_traces(
     ax_err.set_xlabel("concatenated bout time (dashed lines = bout boundaries)")
     fig.tight_layout()
     return save_figure(fig=fig, path=figures_dir() / f"{name}.png")
+
+
+def bout_speed_by_animal(
+    *,
+    measured: pd.DataFrame,
+    decoded: pd.DataFrame | None = None,
+    name: str,
+    tau_s: float = 1.0,
+) -> Path:
+    """Measured net angular speed of every wake bout, one column per session, grouped by animal.
+
+    One dot per bout, because the bout is the unit at which this is measurable and a session mean
+    would hide the spread that matters — bouts within a session differ more than sessions within an
+    animal, which is the first thing to know before asking whether animals differ.
+
+    Where a bout also has a verified decode, its decoded speed is drawn alongside so the two can be
+    compared at a glance. Bouts whose decode failed are not drawn: a speed read off a decode known
+    to be wrong is not a measurement of anything.
+    """
+    order = (
+        measured.groupby(["mouse", "session_id"]).size().reset_index()[["mouse", "session_id"]]
+        .sort_values(["mouse", "session_id"])
+    )
+    mice = sorted(order["mouse"].unique())
+    colours = plt.get_cmap("tab10")
+
+    fig, ax = plt.subplots(figsize=(max(10, 0.45 * len(order)), 5))
+    rng = np.random.default_rng(0)
+    ticks, labels, boundaries, x = [], [], [], 0.0
+
+    for row, mouse in enumerate(mice):
+        sessions = order.loc[order["mouse"] == mouse, "session_id"].tolist()
+        for session_id in sessions:
+            bouts = measured[measured["session_id"] == session_id]
+            jitter = rng.uniform(-0.12, 0.12, len(bouts))
+            ax.scatter(x + jitter, bouts["measured_net"], s=34, color=colours(row % 10),
+                       edgecolor="white", linewidth=0.5, zorder=3,
+                       label=f"Mouse{mouse}" if session_id == sessions[0] else None)
+            if len(bouts):
+                ax.plot([x - 0.28, x + 0.28], [bouts["measured_net"].median()] * 2,
+                        color="0.2", lw=1.6, zorder=4)
+            if decoded is not None:
+                good = decoded[(decoded["session_id"] == session_id) & decoded["usable"]]
+                if len(good):
+                    ax.scatter(x + rng.uniform(-0.1, 0.1, len(good)), good["decoded_net"],
+                               s=52, facecolor="none", edgecolor="k", linewidth=1.3, zorder=5,
+                               label="decoded (verified)" if not labels else None)
+            ticks.append(x)
+            labels.append(session_id.replace("Mouse", "").replace(f"{mouse}-", ""))
+            x += 1.0
+        boundaries.append(x - 0.5)
+        x += 0.6
+
+    for edge in boundaries[:-1]:
+        ax.axvline(edge, color="0.8", lw=1.0, zorder=0)
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(labels, rotation=90, fontsize=7)
+    for row, mouse in enumerate(mice):
+        sessions = order.loc[order["mouse"] == mouse, "session_id"].tolist()
+        centre = np.mean([ticks[[label for label in order["session_id"]].index(s)]
+                          for s in sessions])
+        ax.text(centre, ax.get_ylim()[1], f"Mouse{mouse}", ha="center", va="bottom",
+                fontsize=9, color=colours(row % 10), fontweight="bold")
+
+    ax.set_ylabel(f"net angular speed at τ = {tau_s:g} s (rad/s)")
+    ax.set_xlabel("session (one dot per wake bout ≥ 300 s; bar = session median)")
+    ax.set_title("Measured angular speed of the head, per wake bout")
+    ax.legend(loc="upper left", fontsize=8, framealpha=0.9)
+    ax.margins(y=0.12)
+    fig.tight_layout()
+    return save_figure(fig=fig, path=figures_dir() / f"{name}.png")

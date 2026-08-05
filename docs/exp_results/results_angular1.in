@@ -83,6 +83,46 @@ the pairs are combined.
 
 ---
 
+## angular1_exp4 — how fast does the head actually turn?
+
+The measured answer, from the tracking LEDs alone: no decoder, no estimator, nothing contingent.
+**@MEASURED_N_BOUTS@ wake bouts of at least 300 s, across @MEASURED_N_SESSIONS@ sessions from
+@MEASURED_N_MICE@ mice.**
+
+Median net angular speed at τ = @VALIDATION_TAU@ s is **@MEASURED_MEDIAN@ rad/s** (IQR
+@MEASURED_LO@–@MEASURED_HI@).
+
+@MEASURED_PER_MOUSE@
+
+### Bouts within a session differ more than animals do
+
+| comparison | spread |
+|---|---|
+| between bouts within a session (median max/min) | **@MEASURED_WITHIN_SESSION_SPREAD@×** |
+| between animals (max/min of per-animal medians) | @MEASURED_BETWEEN_MOUSE_SPREAD@× |
+
+Animals do differ (Kruskal-Wallis p = @MEASURED_KRUSKAL_P@), but the three-level variance split says
+how little that is worth:
+
+| level | share of variance in log speed |
+|---|---|
+| between mice | **@MEASURED_VAR_MOUSE@%** |
+| between sessions within a mouse | @MEASURED_VAR_SESSION@% |
+| **between bouts within a session** | **@MEASURED_VAR_BOUT@%** |
+
+ICC = @MEASURED_ICC@. So how fast an animal turns its head is mostly **not** a property of the
+animal — it is a property of what the animal happened to be doing in that bout. Session identity
+explains essentially nothing once the bout is accounted for.
+
+This matters beyond angular speed. It is the ground-truth quantity, measured with no decoder in the
+way, and it sets a reference for what a between-animal ICC looks like for something that is largely
+*behavioural* rather than intrinsic. Any metric claiming a much higher ICC has to explain why it is
+more animal-specific than the behaviour it is measured during.
+
+@FIG_MEASURED_BY_ANIMAL@
+
+---
+
 ## angular1_exp3 — where the failure actually is
 
 exp2 says the estimate does not track measured head speed. It cannot say whether the decode or the

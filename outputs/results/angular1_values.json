@@ -6,6 +6,7 @@
     "detrend_s": 5.0,
     "dt": 0.02,
     "max_lag_s": 1.0,
+    "measured_min_bout_s": 300.0,
     "measured_smooth_s": 0.1,
     "merge_gap_s": 0.0,
     "mice": [
@@ -35,7 +36,8 @@
     "speed_model": "chi2_3",
     "stages": [
       "sessions",
-      "bouts"
+      "bouts",
+      "measured"
     ],
     "states": [
       "Awake",
@@ -45,12 +47,13 @@
     "train_frac": 0.8,
     "validation_tau_s": 1.0
   },
-  "generated": "2026-08-05T20:32:38+00:00",
-  "git_commit": "b2df157",
+  "generated": "2026-08-05T22:08:54+00:00",
+  "git_commit": "4bfe83f",
   "notes": {
     "figures": {
       "FIG_BOUT_TRACE_Mouse25_140130": "outputs/figures/angular1_exp3_traces_Mouse25-140130.png",
-      "FIG_BOUT_TRACE_Mouse28_140313": "outputs/figures/angular1_exp3_traces_Mouse28-140313.png"
+      "FIG_BOUT_TRACE_Mouse28_140313": "outputs/figures/angular1_exp3_traces_Mouse28-140313.png",
+      "FIG_MEASURED_BY_ANIMAL": "outputs/figures/angular1_exp4_measured_speed_by_animal.png"
     },
     "input_sessions": 32
   },
@@ -79,6 +82,21 @@
     "ESTIMATOR_AGREEMENT_RHO": "0.581",
     "FIG_BOUT_TRACE_Mouse25_140130": "**Figure \u2014 Mouse25-140130: measured and decoded angular speed, one decoder per wake bout (green = decode passes the 0.5 rad bar)** (`angular1_exp3_traces_Mouse25-140130.png`)\n\n![Mouse25-140130: measured and decoded angular speed, one decoder per wake bout (green = decode passes the 0.5 rad bar)](../../outputs/figures/angular1_exp3_traces_Mouse25-140130.png)",
     "FIG_BOUT_TRACE_Mouse28_140313": "**Figure \u2014 Mouse28-140313: measured and decoded angular speed, one decoder per wake bout (green = decode passes the 0.5 rad bar)** (`angular1_exp3_traces_Mouse28-140313.png`)\n\n![Mouse28-140313: measured and decoded angular speed, one decoder per wake bout (green = decode passes the 0.5 rad bar)](../../outputs/figures/angular1_exp3_traces_Mouse28-140313.png)",
+    "FIG_MEASURED_BY_ANIMAL": "**Figure \u2014 Measured net angular speed of every wake bout, by animal and session (open circles: decoded speed where the decode is verified)** (`angular1_exp4_measured_speed_by_animal.png`)\n\n![Measured net angular speed of every wake bout, by animal and session (open circles: decoded speed where the decode is verified)](../../outputs/figures/angular1_exp4_measured_speed_by_animal.png)",
+    "MEASURED_BETWEEN_MOUSE_SPREAD": "2.3",
+    "MEASURED_HI": "0.45",
+    "MEASURED_ICC": "0.177",
+    "MEASURED_KRUSKAL_P": "3.7e-07",
+    "MEASURED_LO": "0.22",
+    "MEASURED_MEDIAN": "0.31",
+    "MEASURED_N_BOUTS": "194",
+    "MEASURED_N_MICE": "6",
+    "MEASURED_N_SESSIONS": "39",
+    "MEASURED_PER_MOUSE": "| mouse | sessions | bouts | median | lo | hi |\n|---|---|---|---|---|---|\n| 12 | 5 | 23 | 0.48 | 0.22 | 0.61 |\n| 17 | 9 | 42 | 0.31 | 0.17 | 0.68 |\n| 20 | 5 | 19 | 0.35 | 0.04 | 0.56 |\n| 24 | 4 | 17 | 0.27 | 0.08 | 0.73 |\n| 25 | 10 | 49 | 0.32 | 0.10 | 0.66 |\n| 28 | 6 | 44 | 0.21 | 0.07 | 0.62 |",
+    "MEASURED_VAR_BOUT": "82.3",
+    "MEASURED_VAR_MOUSE": "17.7",
+    "MEASURED_VAR_SESSION": "0.0",
+    "MEASURED_WITHIN_SESSION_SPREAD": "2.6",
     "NET_BY_TAU": "| tau_s | measured_net_speed |\n|---|---|\n| 0.25 | 1.18 |\n| 0.50 | 0.80 |\n| 1.00 | 0.51 |\n| 2.00 | 0.34 |",
     "N_BOTH_STATES": "32",
     "N_MICE": "6",

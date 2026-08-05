@@ -38,7 +38,9 @@ an experiment module.
 | See what questions exist | `uv run hd-exp list` |
 | Read a question's methods | `docs/exp_instructions/instructions-<qid>.md` |
 | Read a question's results | `docs/exp_results/results_<qid>.md` |
-| The original diffusion-constant methods (the paper's spec) | [`docs/methods.md`](./docs/methods.md) |
+| The diffusion-constant methods (Chaudhuri et al. 2019's spec) | [`docs/methods_diffconst.md`](./docs/methods_diffconst.md) |
+| The angular-speed methods (Peyrache et al. 2015's spec) | [`docs/methods_cellangspeed.md`](./docs/methods_cellangspeed.md) |
+| Quirks in the data or tooling that bite more than once | [`docs/fyi.md`](./docs/fyi.md) |
 | How this code got here, and what was wrong before | [`docs/porting/2026-08-02-port-rem-diffusion-and-variance.md`](./docs/porting/2026-08-02-port-rem-diffusion-and-variance.md) |
 
 ### Questions so far
@@ -74,7 +76,9 @@ docs/
   exp_instructions/instructions-<qid>.md    the question and its methods      (hand-written)
   exp_results/results_<qid>.in              prose + @TOKEN@                   (hand-written)
   exp_results/results_<qid>.md              the rendered document             (GENERATED)
-  methods.md                                the paper's spec and our departures from it
+  methods_diffconst.md                      Chaudhuri et al. 2019's spec, and our departures
+  methods_cellangspeed.md                   Peyrache et al. 2015's spec, and our departures
+  fyi.md                                    data/tooling quirks that transfer between questions
   porting/ long_D/ bout_level/              historical records
 src/
   core/       config, env                           constants; where data and outputs live
@@ -110,7 +114,7 @@ word of interpretation. `hd-exp check <qid>` recomputes and fails on any drift.
   and adding it to ADn mostly adds variance. PoS runs remain reachable as a diagnostic.
 - **DANDI REM scoring.** The pipeline reads one public dataset end to end. This differs from the
   scoring used for the original paper, so absolute *D* values here are **not** directly comparable
-  to the paper's reported numbers — see [`docs/methods.md`](./docs/methods.md) §5.
+  to the paper's reported numbers — see [`docs/methods_diffconst.md`](./docs/methods_diffconst.md) §5.
 - **Wake decoding is used as a quality gate, not as a result.** `angular1_exp3` decodes each wake
   bout on its own and scores it against the head direction measured from the DANDI tracking LEDs, so
   the gate needs no CRCNS files. Pooling all of DANDI's "Awake" intervals — which the REM path still

@@ -26,6 +26,7 @@
 | `docs/exp_instructions/instructions-<qid>.md` | the question, its motivation, its experiments, its methods with code pointers | **you, agent-assisted** |
 | `docs/exp_results/results_<qid>.in` | the results **template**: all prose and interpretation, with `@TOKEN@` where numbers go | **you, by hand** |
 | `docs/exp_results/results_<qid>.md` | the rendered document | **generated — never edit** |
+| `docs/fyi.md` | quirks in the data or tooling that would change how you write *unrelated* code | **you, as you find them** |
 | `src/experiments/<qid>.py` | `Config`, optional `collect()`, `analyse()` | you |
 | `src/core/` | configuration surface and path contract | rarely |
 | `src/decode/` | raw recordings -> decoded angle, and the cache | rarely |
@@ -36,6 +37,11 @@
 | `outputs/cache/` | the decode cache — expensive, tracked, shared by every question | `hd-diffusion` |
 | `outputs/results/` | per-session tables and `<qid>_values.json` | `analyse()` |
 | `outputs/figures/<qid>_<expid>_<desc>.png` | figures | `analyse()` |
+
+Every problem gets written up in the results document of the question that found it. A problem also
+goes in `docs/fyi.md` when knowing it would change how someone writes code for a *different*
+question — a data sentinel, a naming convention, a measure that is not what it looks like. Keep the
+entry short and link the results document for the full story.
 
 `docs/porting/`, `docs/long_D/` and `docs/bout_level/` are **historical narrative records** from
 before this structure. Do not add to them.

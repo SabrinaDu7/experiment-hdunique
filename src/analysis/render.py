@@ -77,7 +77,11 @@ def render(*, question_id: str, values: dict[str, Any], docs_root: Path) -> Path
     # works and gives control over position.
     figure_tokens = [k for k in tokens if k.startswith("FIG_")]
     if "@FIGURES@" in body:
-        tokens["FIGURES"] = "\n\n".join(tokens[k] for k in figure_tokens)
+        # Every figure the template did not already place by name. A document that places some
+        # figures where they belong should not have those repeated in the catch-all, and the
+        # figures whose names depend on which sessions ran cannot be named in the template at all.
+        placed = {m.group(1) for m in TOKEN.finditer(body)}
+        tokens["FIGURES"] = "\n\n".join(tokens[k] for k in figure_tokens if k not in placed)
 
     missing = sorted({m.group(1) for m in TOKEN.finditer(body)} - set(tokens))
     if missing:

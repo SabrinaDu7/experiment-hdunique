@@ -104,3 +104,35 @@ def test_net_speed_barely_moves_with_the_sampling_rate(stride: int) -> None:
     assert np.isclose(decimated, reference, rtol=0.1), (
         f"net speed moved from {reference:.3f} to {decimated:.3f} on {stride}x decimation"
     )
+
+
+def test_failed_led_detections_are_dropped_not_used_as_positions() -> None:
+    """`-1` marks a failed detection, and it is finite — so an isfinite check keeps it.
+
+    Treating (-1, -1) as a position the animal was at is not a small error: failed detections run to
+    20.5% of samples in Mouse12-120808, and keeping them inflated net angular speed by 1.48x against
+    an independent computation of the same signal. Dropping them brings the agreement to 1.000.
+    """
+    n = 1000
+    times = np.arange(n) * DT
+    angle = np.linspace(0, 4 * np.pi, n)
+    red = np.column_stack([np.cos(angle), np.sin(angle)]) * 10.0 + 50.0
+    blue = np.full_like(red, 50.0)
+    bad = np.zeros(n, dtype=bool)
+    bad[100:150] = True
+    red[bad] = -1.0
+
+    class _Series:
+        def __init__(self, values):
+            self.values = values
+            self.index = times
+
+    class _File(dict):
+        pass
+
+    data = _File({"RedLED": _Series(red), "BlueLED": _Series(blue)})
+    from decode.head_direction import head_direction
+
+    hd = head_direction(data=data)
+    assert len(hd) == n - bad.sum(), "failed detections were not dropped"
+    assert not np.any(np.isclose(np.asarray(hd.index), times[bad][:, None]).any(axis=0))

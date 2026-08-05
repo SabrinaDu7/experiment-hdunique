@@ -17,6 +17,7 @@ QUESTION_IDS: tuple[str, ...] = (
     "variance2",
     "bouts1",
     "angular1",
+    "tuning1",
 )
 
 #: Questions whose module is not written yet. Listed so `hd-exp list` reports them as planned

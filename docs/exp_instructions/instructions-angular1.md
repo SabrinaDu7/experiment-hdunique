@@ -27,6 +27,8 @@ solution.
   LEDs, so the estimator can be checked against it.
 - **angular1_exp3** — one decoder per wake bout, to separate a broken decoder from a broken
   estimator. This is the experiment that localises exp2's failure.
+- **angular1_exp4** — the measured angular speed of every wake bout in every session. No decoder,
+  no estimator: the ground truth on its own.
 
 ## Methods
 
@@ -187,6 +189,31 @@ uv run hd-exp run angular1
 
 Traces are cached to `outputs/cache/angular1_traces_<session>.npz` so the figure can be redrawn
 without repeating the decode.
+
+## angular1_exp4 — measured angular speed per wake bout, every animal
+
+The one part of this question contingent on nothing. It reads the tracking LEDs and reports the net
+angular speed of each wake bout of at least 300 s, so it covers the whole dataset in about a minute
+and is the yardstick every estimate here is graded against.
+
+The **bout** is the unit, not the session. Bouts within a session are separated by sleep and are not
+one behaviour, and collapsing them to a session mean would hide precisely the spread that has to be
+known before asking whether animals differ.
+
+```bash
+uv run hd-exp collect angular1 --stages measured    # ~1 min for every session
+uv run hd-exp run     angular1
+```
+
+Variance is split three ways — bout within session, session within mouse, mouse — by Searle's
+unbalanced nested ANOVA (`analysis.stats.nested_variance`) on log speed. Three levels rather than
+two because bouts sit inside sessions: a two-level model treating bouts as independent draws from an
+animal would credit session structure to the animal. (The REML mixed model does not converge on this
+design, which is why the moment estimator is used.)
+
+The figure draws one dot per bout, columns grouped by animal, with the decoded speed overlaid as an
+open circle wherever a bout's decode is verified — so measured and decoded can be compared at a
+glance, and unverified decodes are simply absent rather than shown and caveated.
 
 ## Is the ground truth itself right?
 

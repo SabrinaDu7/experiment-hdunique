@@ -19,6 +19,7 @@ EXPERIMENTS = (
     "angular1_exp1",  # mean angular speed per session, wake and REM
     "angular1_exp2",  # validation: the wake estimate against the measured head angle
     "angular1_exp3",  # per-wake-bout decoders: is the decoded angular speed the measured one?
+    "angular1_exp4",  # measured angular speed per wake bout, every animal and session
 )
 
 
@@ -80,8 +81,11 @@ class Config:
     trace_smooth_s: float = 5.0
     seed: int = 0
     #: Which collection stages `collect` runs. "sessions" is the per-session sweep behind exp1/exp2
-    #: (hours); "bouts" is the per-wake-bout decode behind exp3.
-    stages: tuple[str, ...] = ("sessions", "bouts")
+    #: (hours); "bouts" is the per-wake-bout decode behind exp3; "measured" is the tracking-only
+    #: sweep behind exp4 (a minute, since it decodes nothing).
+    stages: tuple[str, ...] = ("sessions", "bouts", "measured")
+    #: exp4 reports every qualifying bout, with no cap - it costs nothing to include them all.
+    measured_min_bout_s: float = 300.0
 
 
 def _binned_rates(
@@ -425,8 +429,67 @@ def collect_bouts(*, cfg: Config) -> None:
     print(f"  -> {len(rows)} bouts in {path.name}")
 
 
+def collect_measured(*, cfg: Config) -> None:
+    """Measured angular speed of every wake bout in every session, for exp4.
+
+    This needs only the tracking LEDs, so unlike the decode it covers the whole dataset in about a
+    minute. It is the ground-truth answer to the question this whole topic asks — how fast does the
+    head turn, per animal — against which every estimate is graded.
+    """
+    wanted = {io.parse_session_spec(s) for s in cfg.sessions}
+    rows = []
+    for mouse, session in loader.list_sessions():
+        if mouse not in cfg.mice or (wanted and (mouse, session) not in wanted):
+            continue
+        try:
+            data = loader.load_session(mouse=mouse, session=session)
+            hd = head_direction.head_direction(data=data)
+            bouts = loader.contiguous_bouts(
+                epochs=loader.load_state_epochs(data=data, state="Awake"),
+                merge_gap_s=cfg.merge_gap_s, min_duration_s=cfg.measured_min_bout_s,
+            )
+        except Exception as exc:  # noqa: BLE001 - one bad session must not stop the sweep
+            print(f"  skip Mouse{mouse}-{session}: {exc}")
+            continue
+
+        for index, (start, end) in enumerate(
+            zip(np.asarray(bouts.start), np.asarray(bouts.end), strict=True)
+        ):
+            inside = hd.restrict(nap.IntervalSet(start=[start], end=[end]))
+            angles = np.asarray(inside.values, dtype=float)
+            times = np.asarray(inside.index, dtype=float)
+            if len(times) < 500:
+                continue
+            speeds = bout_decode.speed_summary(
+                angles=angles, times=times,
+                net_tau_s=cfg.validation_tau_s, smooth_s=cfg.measured_smooth_s,
+            )
+            rows.append({
+                "mouse": mouse, "session": session, "session_id": f"Mouse{mouse}-{session}",
+                "bout_index": index, "bout_start": float(start),
+                "duration_s": float(end) - float(start), "n_samples": len(times),
+                # Fraction of the bout the tracker actually saw. A bout mostly reconstructed from
+                # a handful of samples is not a bout whose speed means much.
+                "tracked_fraction": float(len(times) * np.median(np.diff(times))
+                                          / (float(end) - float(start))),
+                "measured_net": speeds["net"], "measured_path": speeds["path"],
+            })
+        if rows and rows[-1]["session_id"] == f"Mouse{mouse}-{session}":
+            got = [r for r in rows if r["session_id"] == f"Mouse{mouse}-{session}"]
+            print(f"  Mouse{mouse}-{session}: {len(got)} bouts, net "
+                  f"{np.nanmin([r['measured_net'] for r in got]):.2f}-"
+                  f"{np.nanmax([r['measured_net'] for r in got]):.2f} rad/s", flush=True)
+    if not rows:
+        print("No usable wake bouts.")
+        return
+    path = io.save_table(frame=pd.DataFrame(rows), name=f"{QUESTION_ID}_measured")
+    print(f"  -> {len(rows)} bouts in {path.name}")
+
+
 def collect(*, cfg: Config) -> None:
     """Run the requested collection stages. See `Config.stages`."""
+    if "measured" in cfg.stages:
+        collect_measured(cfg=cfg)
     if "bouts" in cfg.stages:
         collect_bouts(cfg=cfg)
     if "sessions" in cfg.stages:
@@ -578,6 +641,7 @@ def analyse(*, cfg: Config, values: Values) -> None:
     values.table("VALIDATION_BY_GATE", gates, floatfmt=".3f")
 
     _exp3_bouts(cfg=cfg, values=values)
+    _exp4_measured(cfg=cfg, values=values)
 
 
 def _exp3_bouts(*, cfg: Config, values: Values) -> None:
@@ -655,3 +719,79 @@ def _exp3_bouts(*, cfg: Config, values: Values) -> None:
         values.figure(f"FIG_BOUT_TRACE_{session_id.replace('-', '_')}", figure,
                       caption=f"{session_id}: measured and decoded angular speed, one decoder per "
                               "wake bout (green = decode passes the 0.5 rad bar)")
+
+
+def _exp4_measured(*, cfg: Config, values: Values) -> None:
+    """Measured angular speed per wake bout across every animal and session.
+
+    The ground truth, standing on its own. It needs no decode and no estimator, so it is the one
+    part of this question that is not contingent on anything working — and it is the yardstick every
+    other number here is measured against.
+    """
+    path = results_dir() / f"{QUESTION_ID}_measured.parquet"
+    tokens = ("MEASURED_N_BOUTS", "MEASURED_N_SESSIONS", "MEASURED_N_MICE", "MEASURED_MEDIAN",
+              "MEASURED_LO", "MEASURED_HI", "MEASURED_WITHIN_SESSION_SPREAD",
+              "MEASURED_BETWEEN_MOUSE_SPREAD", "MEASURED_KRUSKAL_P", "MEASURED_ICC",
+              "MEASURED_VAR_MOUSE", "MEASURED_VAR_SESSION", "MEASURED_VAR_BOUT")
+    if not path.exists():
+        for token in tokens:
+            values.scalar(token, float("nan"))
+        values.table("MEASURED_PER_MOUSE", pd.DataFrame(
+            [{"note": "run: hd-exp collect angular1 --stages measured"}]))
+        return
+
+    frame = pd.read_parquet(path)
+    usable = frame[np.isfinite(frame["measured_net"])]
+    values.scalar("MEASURED_N_BOUTS", len(usable), fmt="d")
+    values.scalar("MEASURED_N_SESSIONS", int(usable["session_id"].nunique()), fmt="d")
+    values.scalar("MEASURED_N_MICE", int(usable["mouse"].nunique()), fmt="d")
+    values.scalar("MEASURED_MEDIAN", float(usable["measured_net"].median()), fmt=".2f")
+    values.scalar("MEASURED_LO", float(usable["measured_net"].quantile(0.25)), fmt=".2f")
+    values.scalar("MEASURED_HI", float(usable["measured_net"].quantile(0.75)), fmt=".2f")
+
+    # Is the head speed a property of the animal, or does it vary just as much bout to bout?
+    within = usable.groupby("session_id")["measured_net"].agg(lambda s: s.max() / s.min())
+    values.scalar("MEASURED_WITHIN_SESSION_SPREAD", float(within.median()), fmt=".1f")
+    per_mouse_median = usable.groupby("mouse")["measured_net"].median()
+    values.scalar("MEASURED_BETWEEN_MOUSE_SPREAD",
+                  float(per_mouse_median.max() / per_mouse_median.min()), fmt=".1f")
+    kruskal = stats.compare_groups(values=usable["measured_net"], groups=usable["mouse"])
+    values.scalar("MEASURED_KRUSKAL_P", kruskal["p"], fmt=".2g")
+
+    # Three levels, not two: bouts sit inside sessions inside mice, and a two-level model that
+    # treats bouts as independent draws from a mouse would attribute session structure to the
+    # animal. Searle's nested ANOVA is exact here and needs no optimiser, unlike the LMM, which
+    # does not converge on this design.
+    components = stats.nested_variance(
+        frame=usable.assign(log_speed=np.log(usable["measured_net"])),
+        outcome="log_speed", outer="mouse", inner="session",
+    )
+    total = sum(max(0.0, components[k]) for k in ("var_outer", "var_inner", "var_resid"))
+    for label, key in (("MOUSE", "var_outer"), ("SESSION", "var_inner"), ("BOUT", "var_resid")):
+        values.scalar(f"MEASURED_VAR_{label}",
+                      100.0 * max(0.0, components[key]) / total if total > 0 else float("nan"),
+                      fmt=".1f")
+    values.scalar("MEASURED_ICC",
+                  max(0.0, components["var_outer"]) / total if total > 0 else float("nan"),
+                  fmt=".3f")
+
+    per_mouse = (
+        usable.groupby("mouse")
+        .agg(sessions=("session_id", "nunique"), bouts=("measured_net", "size"),
+             median=("measured_net", "median"), lo=("measured_net", "min"),
+             hi=("measured_net", "max"))
+        .reset_index()
+    )
+    values.table("MEASURED_PER_MOUSE", per_mouse, floatfmt=".2f")
+
+    decoded = None
+    decode_path = results_dir() / f"{QUESTION_ID}_bouts.parquet"
+    if decode_path.exists():
+        decoded = pd.read_parquet(decode_path)
+    figure = panels.bout_speed_by_animal(
+        measured=usable, decoded=decoded, tau_s=cfg.validation_tau_s,
+        name=f"{QUESTION_ID}_exp4_measured_speed_by_animal",
+    )
+    values.figure("FIG_MEASURED_BY_ANIMAL", figure,
+                  caption="Measured net angular speed of every wake bout, by animal and session "
+                          "(open circles: decoded speed where the decode is verified)")

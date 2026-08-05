@@ -97,6 +97,55 @@ the pairs are combined.
 
 ---
 
+## angular1_exp4 — how fast does the head actually turn?
+
+The measured answer, from the tracking LEDs alone: no decoder, no estimator, nothing contingent.
+**194 wake bouts of at least 300 s, across 39 sessions from
+6 mice.**
+
+Median net angular speed at τ = 1.00 s is **0.31 rad/s** (IQR
+0.22–0.45).
+
+| mouse | sessions | bouts | median | lo | hi |
+|---|---|---|---|---|---|
+| 12 | 5 | 23 | 0.48 | 0.22 | 0.61 |
+| 17 | 9 | 42 | 0.31 | 0.17 | 0.68 |
+| 20 | 5 | 19 | 0.35 | 0.04 | 0.56 |
+| 24 | 4 | 17 | 0.27 | 0.08 | 0.73 |
+| 25 | 10 | 49 | 0.32 | 0.10 | 0.66 |
+| 28 | 6 | 44 | 0.21 | 0.07 | 0.62 |
+
+### Bouts within a session differ more than animals do
+
+| comparison | spread |
+|---|---|
+| between bouts within a session (median max/min) | **2.6×** |
+| between animals (max/min of per-animal medians) | 2.3× |
+
+Animals do differ (Kruskal-Wallis p = 3.7e-07), but the three-level variance split says
+how little that is worth:
+
+| level | share of variance in log speed |
+|---|---|
+| between mice | **17.7%** |
+| between sessions within a mouse | 0.0% |
+| **between bouts within a session** | **82.3%** |
+
+ICC = 0.177. So how fast an animal turns its head is mostly **not** a property of the
+animal — it is a property of what the animal happened to be doing in that bout. Session identity
+explains essentially nothing once the bout is accounted for.
+
+This matters beyond angular speed. It is the ground-truth quantity, measured with no decoder in the
+way, and it sets a reference for what a between-animal ICC looks like for something that is largely
+*behavioural* rather than intrinsic. Any metric claiming a much higher ICC has to explain why it is
+more animal-specific than the behaviour it is measured during.
+
+**Figure — Measured net angular speed of every wake bout, by animal and session (open circles: decoded speed where the decode is verified)** (`angular1_exp4_measured_speed_by_animal.png`)
+
+![Measured net angular speed of every wake bout, by animal and session (open circles: decoded speed where the decode is verified)](../../outputs/figures/angular1_exp4_measured_speed_by_animal.png)
+
+---
+
 ## angular1_exp3 — where the failure actually is
 
 exp2 says the estimate does not track measured head speed. It cannot say whether the decode or the
@@ -270,7 +319,7 @@ measured ground truth could have revealed, and the reason `angular1_exp2` exists
 
 ## Provenance
 
-Generated 2026-08-05T20:32:38+00:00 from commit `b2df157`.
+Generated 2026-08-05T22:08:54+00:00 from commit `4bfe83f`.
 
 | config | value |
 |---|---|
@@ -278,6 +327,7 @@ Generated 2026-08-05T20:32:38+00:00 from commit `b2df157`.
 | `detrend_s` | `5.0` |
 | `dt` | `0.02` |
 | `max_lag_s` | `1.0` |
+| `measured_min_bout_s` | `300.0` |
 | `measured_smooth_s` | `0.1` |
 | `merge_gap_s` | `0.0` |
 | `mice` | `[12, 17, 20, 24, 25, 28]` |
@@ -293,7 +343,7 @@ Generated 2026-08-05T20:32:38+00:00 from commit `b2df157`.
 | `seed` | `0` |
 | `sessions` | `[]` |
 | `speed_model` | `chi2_3` |
-| `stages` | `['sessions', 'bouts']` |
+| `stages` | `['sessions', 'bouts', 'measured']` |
 | `states` | `['Awake', 'REM']` |
 | `trace_smooth_s` | `5.0` |
 | `train_frac` | `0.8` |
@@ -301,5 +351,5 @@ Generated 2026-08-05T20:32:38+00:00 from commit `b2df157`.
 
 | input | value |
 |---|---|
-| `figures` | `{'FIG_BOUT_TRACE_Mouse25_140130': 'outputs/figures/angular1_exp3_traces_Mouse25-140130.png', 'FIG_BOUT_TRACE_Mouse28_140313': 'outputs/figures/angular1_exp3_traces_Mouse28-140313.png'}` |
+| `figures` | `{'FIG_BOUT_TRACE_Mouse25_140130': 'outputs/figures/angular1_exp3_traces_Mouse25-140130.png', 'FIG_BOUT_TRACE_Mouse28_140313': 'outputs/figures/angular1_exp3_traces_Mouse28-140313.png', 'FIG_MEASURED_BY_ANIMAL': 'outputs/figures/angular1_exp4_measured_speed_by_animal.png'}` |
 | `input_sessions` | `32` |

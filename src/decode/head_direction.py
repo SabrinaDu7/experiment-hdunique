@@ -22,11 +22,23 @@ LED_KEYS: tuple[tuple[str, str], ...] = (
 )
 
 
+#: Coordinate value marking a failed LED detection. The NWB says so itself: "Raw sensor data.
+#: Values of -1 indicate that LED detection failed." The sentinel is finite, so a plain isfinite
+#: check keeps it and treats (-1, -1) as a position the animal was actually at.
+FAILED_DETECTION = -0.5
+
+
 def head_direction(*, data: nap.NWBFile) -> nap.Tsd:
     """Head direction in [0, 2π), from the vector joining the two tracking LEDs.
 
-    Samples where either LED is missing are dropped rather than interpolated: a fabricated position
-    would produce a fabricated angular velocity, which is the very quantity being measured.
+    Samples where either LED failed to be detected are dropped rather than interpolated: a
+    fabricated position would produce a fabricated angular velocity, which is the very quantity
+    being measured.
+
+    Dropping the `-1` sentinel matters more than it sounds. Failed detections run from 0.4% of
+    samples (Mouse25) to 20.5% (Mouse12-120808), and keeping them is what made this angle disagree
+    with the independently computed CRCNS `.ang` for exactly the animals with the highest failure
+    rate — net angular speed 1.48x too high at 20.5% failures against 1.02x at 0.4%.
     """
     keys = set(data.keys())
     for red_key, blue_key in LED_KEYS:
@@ -36,9 +48,13 @@ def head_direction(*, data: nap.NWBFile) -> nap.Tsd:
     else:
         raise KeyError(f"No LED pair in this NWB; looked for {LED_KEYS}.")
 
-    delta = np.asarray(red.values, dtype=float) - np.asarray(blue.values, dtype=float)
+    red_xy = np.asarray(red.values, dtype=float)
+    blue_xy = np.asarray(blue.values, dtype=float)
+    detected = (red_xy > FAILED_DETECTION).all(axis=1) & (blue_xy > FAILED_DETECTION).all(axis=1)
+
+    delta = red_xy - blue_xy
     angle = np.arctan2(delta[:, 1], delta[:, 0]) % (2.0 * np.pi)
-    good = np.isfinite(angle) & np.isfinite(delta).all(axis=1)
+    good = detected & np.isfinite(angle) & np.isfinite(delta).all(axis=1)
     return nap.Tsd(t=np.asarray(red.index, dtype=float)[good], d=angle[good])
 
 
