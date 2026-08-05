@@ -9,20 +9,27 @@
 
 Methods: [`instructions-angular1.md`](../exp_instructions/instructions-angular1.md).
 
-## Headline: the estimator does not survive its own validation
+## Headline
 
-**The angular speeds below should not be used.** The estimator is verified correct on synthetic
-spikes — it recovers a known speed within a factor of two and orders four speeds correctly — but on
-these recordings it does not reproduce the head speed measured from the tracking LEDs. Across
-32 wake sessions where the answer is independently known, the correlation between
-estimate and truth is **ρ = -0.133 (p = 0.47)**.
+Two findings, and they point opposite ways.
 
-That is reported here rather than buried, because the numbers are not self-evidently broken. They
-come with a plausible REM/wake ratio and apparent differences between animals, and a per-session
+**The cell-pair estimator does not work on this data.** Across 32 wake sessions where the
+answer is independently known from the tracking LEDs, the correlation between estimate and truth is
+**ρ = -0.133 (p = 0.47)**. The per-session speeds in
+[exp1](#angular1_exp1--the-speeds-themselves) should not be used.
+
+**Angular speed read off the decoded ring angle does work — where the decode is verified.** On the
+2 wake bouts whose own held-out decode clears the 0.5 rad bar, decoded angular speed is
+**1.00×** the measured speed. That is the route to a usable number, and it comes with
+a quality gate the correlogram route never had.
+
+The first finding is reported rather than buried because the numbers are not self-evidently broken.
+They come with a plausible REM/wake ratio and apparent differences between animals, and a per-session
 value like 0.20 rad/s invites interpretation rather than suspicion. Nothing in them warns
 that they are not measuring head speed; the validation is the only thing that does.
 
-**32 sessions from 6 mice**, ADn cells only.
+**32 sessions from 6 mice** for exp1/exp2, ADn cells only; exp3 covers
+14 wake bouts from the sessions run so far.
 
 ---
 
@@ -88,7 +95,79 @@ It changed the answer without fixing it: the two estimators agree with each othe
 (p = 0.54) against the truth's -0.133. Both fail, so the fault is not in how
 the pairs are combined.
 
-### What is likely wrong
+---
+
+## angular1_exp3 — where the failure actually is
+
+exp2 says the estimate does not track measured head speed. It cannot say whether the decode or the
+cell-pair estimator is at fault. exp3 fits **one decoder per wake bout**, each with its own held-out
+RMSE against measured head direction, and then measures three angular speeds on the same bout:
+measured (LEDs), decoded (the bout's own ring angle), and correlogram (the cell-pair estimator).
+
+**14 wake bouts** of at least 300 s across the sessions run so far; **2**
+have a decode good enough to trust (held-out RMSE below 0.5 rad, the published bar; chance is
+π/√3 = 1.81).
+
+| session_id | bout_index | duration_s | rmse | usable | measured_net | decoded_net | measured_path | decoded_path | correlogram_speed |
+|---|---|---|---|---|---|---|---|---|---|
+| Mouse25-140130 | 0 | 342.00 | 1.55 | False | 0.11 | 1.19 | 0.31 | 3.17 | nan |
+| Mouse25-140130 | 1 | 1112.00 | 0.93 | False | 0.40 | 0.61 | 0.90 | 1.38 | 1.91 |
+| Mouse25-140130 | 2 | 3543.00 | 0.42 | True | 0.59 | 0.59 | 1.24 | 0.93 | 2.41 |
+| Mouse25-140130 | 3 | 1036.00 | 0.89 | False | 0.41 | 0.60 | 0.99 | 1.19 | 2.00 |
+| Mouse25-140130 | 4 | 381.00 | 0.93 | False | 0.25 | 0.65 | 0.60 | 1.40 | 2.48 |
+| Mouse25-140130 | 5 | 2083.00 | 1.22 | False | 0.60 | 0.78 | 1.41 | 1.34 | 2.01 |
+| Mouse28-140313 | 0 | 1043.00 | 1.17 | False | 0.12 | 0.77 | 0.35 | 2.03 | 4.31 |
+| Mouse28-140313 | 1 | 3875.00 | 0.39 | True | 0.47 | 0.48 | 1.03 | 0.74 | 1.93 |
+| Mouse28-140313 | 2 | 1214.00 | 0.78 | False | 0.21 | 0.47 | 0.55 | 1.24 | 1.69 |
+| Mouse28-140313 | 3 | 630.00 | 0.68 | False | 0.17 | 0.35 | 0.60 | 0.93 | 0.18 |
+| Mouse28-140313 | 4 | 403.00 | 0.77 | False | 0.22 | 0.55 | 0.98 | 1.63 | 0.67 |
+| Mouse28-140313 | 5 | 2520.00 | 1.06 | False | 0.30 | 0.43 | 1.31 | 1.28 | 10.76 |
+| Mouse28-140313 | 6 | 333.00 | 1.12 | False | 0.15 | 0.96 | 0.58 | 2.35 | nan |
+| Mouse28-140313 | 7 | 1719.00 | 1.59 | False | 0.59 | 0.54 | 1.38 | 0.86 | 2.41 |
+
+### The decode is fine when the bout is one behaviour
+
+Median RMSE is 0.407 on the bouts that pass and 0.994 on those that do not.
+The bouts that pass are the long behavioural sessions; the ones that fail are wake in the rest box,
+where the animal barely turns its head, the ring is never traversed, and there is nothing for the
+manifold fit to recover. Pooling those together — which is what the rest of this repo does — is what
+produced the 0.97–1.48 rad decode that started this investigation.
+
+On bouts whose decode passes, decoded angular speed is **1.00×** the measured speed
+— a median absolute error of 0.00 rad/s, against 0.24 rad/s on the
+bouts that fail. **Angular speed read straight off a verified decode is the measured speed.**
+
+That comparison is made on **net** displacement at a fixed lag, not on path length, and the choice is
+not cosmetic. Path length is not a well-defined property of the head: decimating the same wake bout
+from 39 Hz to 2.4 Hz drops it by a factor of 2.4, because finer sampling accumulates more tracking
+jitter, while net speed at tau = 1 s moves by under 2%. On the same bouts the path-length ratio is
+0.73×, which would read as a decoder that systematically under-reports when it
+is really the two signals being measured at different effective bandwidths.
+
+On the bouts that fail, decoded speed runs *above* measured — a bad decode jumps around, and those
+jumps read as fast turning. Worth carrying into REM, where no RMSE is available to catch it: a
+broken decode there will report a fast bump, not a slow one.
+
+### The cell-pair estimator is the broken part
+
+On those same bouts the correlogram estimator comes out at **4.06×** the
+measured speed. Worse than the offset is that it barely responds to the truth: across these bouts
+measured speed varies 5.3× and the correlogram estimate varies
+60.0×, not in step with it.
+
+That settles what exp2 could not. The decode carries the angular speed; the estimator built on top
+of it loses it. Any future angular-velocity number should be read off a decode with a quality
+number attached, not from cell-pair correlograms.
+
+**Figure — Mouse25-140130: measured and decoded angular speed, one decoder per wake bout (green = decode passes the 0.5 rad bar)** (`angular1_exp3_traces_Mouse25-140130.png`)
+
+![Mouse25-140130: measured and decoded angular speed, one decoder per wake bout (green = decode passes the 0.5 rad bar)](../../outputs/figures/angular1_exp3_traces_Mouse25-140130.png)
+
+**Figure — Mouse28-140313: measured and decoded angular speed, one decoder per wake bout (green = decode passes the 0.5 rad bar)** (`angular1_exp3_traces_Mouse28-140313.png`)
+
+![Mouse28-140313: measured and decoded angular speed, one decoder per wake bout (green = decode passes the 0.5 rad bar)](../../outputs/figures/angular1_exp3_traces_Mouse28-140313.png)
+
+### What is likely wrong with the estimator
 
 Diagnosed but not fixed, in decreasing order of confidence:
 
@@ -191,7 +270,7 @@ measured ground truth could have revealed, and the reason `angular1_exp2` exists
 
 ## Provenance
 
-Generated 2026-08-05T11:18:37+00:00 from commit `7eb5d43`.
+Generated 2026-08-05T20:32:38+00:00 from commit `b2df157`.
 
 | config | value |
 |---|---|
@@ -200,17 +279,27 @@ Generated 2026-08-05T11:18:37+00:00 from commit `7eb5d43`.
 | `dt` | `0.02` |
 | `max_lag_s` | `1.0` |
 | `measured_smooth_s` | `0.1` |
+| `merge_gap_s` | `0.0` |
 | `mice` | `[12, 17, 20, 24, 25, 28]` |
+| `min_bout_s` | `300.0` |
 | `min_pairs` | `3` |
 | `min_peak_rate_hz` | `1.0` |
 | `min_rho` | `0.3` |
 | `n_hd_bins` | `60` |
+| `n_restarts` | `5` |
+| `n_splits` | `3` |
 | `net_taus_s` | `[0.25, 0.5, 1.0, 2.0]` |
+| `rmse_threshold` | `0.5` |
+| `seed` | `0` |
 | `sessions` | `[]` |
 | `speed_model` | `chi2_3` |
+| `stages` | `['sessions', 'bouts']` |
 | `states` | `['Awake', 'REM']` |
+| `trace_smooth_s` | `5.0` |
+| `train_frac` | `0.8` |
 | `validation_tau_s` | `1.0` |
 
 | input | value |
 |---|---|
+| `figures` | `{'FIG_BOUT_TRACE_Mouse25_140130': 'outputs/figures/angular1_exp3_traces_Mouse25-140130.png', 'FIG_BOUT_TRACE_Mouse28_140313': 'outputs/figures/angular1_exp3_traces_Mouse28-140313.png'}` |
 | `input_sessions` | `32` |

@@ -86,7 +86,12 @@ class Values:
 
         The path is stored relative to the repository root, so the link resolves both on disk and on
         a git host whatever `$OUTPUT_PATH` happened to be on the machine that produced it.
+
+        The token is prefixed `FIG_` if it is not already, because that prefix is how `@FIGURES@`
+        finds figures and how `render` detects one the template never references. A figure recorded
+        under any other name is invisible to both checks and silently fails to appear.
         """
+        name = name if name.startswith("FIG_") else f"FIG_{name}"
         repo_root = Path(__file__).resolve().parent.parent.parent
         try:
             rel = path.resolve().relative_to(repo_root)

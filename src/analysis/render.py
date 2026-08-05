@@ -100,7 +100,9 @@ def render(*, question_id: str, values: dict[str, Any], docs_root: Path) -> Path
         )
 
     rendered = TOKEN.sub(lambda m: tokens[m.group(1)], body)
-    unused = sorted(set(tokens) - referenced - {"FIGURES"})
+    # `@FIGURES@` consumes every FIG_ token, so those are used even though they are not named.
+    consumed = set(figure_tokens) if "FIGURES" in tokens else set()
+    unused = sorted(set(tokens) - referenced - consumed - {"FIGURES"})
 
     date = datetime.now(UTC).strftime("%Y-%m-%d")
     head = f"{date}\n\n{BANNER.format(stem=f'results_{question_id}')}\n\n"

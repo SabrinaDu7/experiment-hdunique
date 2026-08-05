@@ -5,20 +5,27 @@
 
 Methods: [`instructions-angular1.md`](../exp_instructions/instructions-angular1.md).
 
-## Headline: the estimator does not survive its own validation
+## Headline
 
-**The angular speeds below should not be used.** The estimator is verified correct on synthetic
-spikes — it recovers a known speed within a factor of two and orders four speeds correctly — but on
-these recordings it does not reproduce the head speed measured from the tracking LEDs. Across
-@VALIDATION_N@ wake sessions where the answer is independently known, the correlation between
-estimate and truth is **ρ = @VALIDATION_NET_RHO@ (p = @VALIDATION_NET_P@)**.
+Two findings, and they point opposite ways.
 
-That is reported here rather than buried, because the numbers are not self-evidently broken. They
-come with a plausible REM/wake ratio and apparent differences between animals, and a per-session
+**The cell-pair estimator does not work on this data.** Across @VALIDATION_N@ wake sessions where the
+answer is independently known from the tracking LEDs, the correlation between estimate and truth is
+**ρ = @VALIDATION_NET_RHO@ (p = @VALIDATION_NET_P@)**. The per-session speeds in
+[exp1](#angular1_exp1--the-speeds-themselves) should not be used.
+
+**Angular speed read off the decoded ring angle does work — where the decode is verified.** On the
+@BOUT_N_USABLE@ wake bouts whose own held-out decode clears the 0.5 rad bar, decoded angular speed is
+**@BOUT_DECODED_RATIO@×** the measured speed. That is the route to a usable number, and it comes with
+a quality gate the correlogram route never had.
+
+The first finding is reported rather than buried because the numbers are not self-evidently broken.
+They come with a plausible REM/wake ratio and apparent differences between animals, and a per-session
 value like @AWAKE_MEDIAN@ rad/s invites interpretation rather than suspicion. Nothing in them warns
 that they are not measuring head speed; the validation is the only thing that does.
 
-**@N_SESSIONS@ sessions from @N_MICE@ mice**, ADn cells only.
+**@N_SESSIONS@ sessions from @N_MICE@ mice** for exp1/exp2, ADn cells only; exp3 covers
+@BOUT_N@ wake bouts from the sessions run so far.
 
 ---
 
@@ -74,7 +81,58 @@ It changed the answer without fixing it: the two estimators agree with each othe
 (p = @PAIRWISE_P@) against the truth's @VALIDATION_NET_RHO@. Both fail, so the fault is not in how
 the pairs are combined.
 
-### What is likely wrong
+---
+
+## angular1_exp3 — where the failure actually is
+
+exp2 says the estimate does not track measured head speed. It cannot say whether the decode or the
+cell-pair estimator is at fault. exp3 fits **one decoder per wake bout**, each with its own held-out
+RMSE against measured head direction, and then measures three angular speeds on the same bout:
+measured (LEDs), decoded (the bout's own ring angle), and correlogram (the cell-pair estimator).
+
+**@BOUT_N@ wake bouts** of at least 300 s across the sessions run so far; **@BOUT_N_USABLE@**
+have a decode good enough to trust (held-out RMSE below 0.5 rad, the published bar; chance is
+π/√3 = 1.81).
+
+@BOUT_TABLE@
+
+### The decode is fine when the bout is one behaviour
+
+Median RMSE is @BOUT_RMSE_PASS@ on the bouts that pass and @BOUT_RMSE_FAIL@ on those that do not.
+The bouts that pass are the long behavioural sessions; the ones that fail are wake in the rest box,
+where the animal barely turns its head, the ring is never traversed, and there is nothing for the
+manifold fit to recover. Pooling those together — which is what the rest of this repo does — is what
+produced the 0.97–1.48 rad decode that started this investigation.
+
+On bouts whose decode passes, decoded angular speed is **@BOUT_DECODED_RATIO@×** the measured speed
+— a median absolute error of @BOUT_SPEED_ERR_PASS@ rad/s, against @BOUT_SPEED_ERR_FAIL@ rad/s on the
+bouts that fail. **Angular speed read straight off a verified decode is the measured speed.**
+
+That comparison is made on **net** displacement at a fixed lag, not on path length, and the choice is
+not cosmetic. Path length is not a well-defined property of the head: decimating the same wake bout
+from 39 Hz to 2.4 Hz drops it by a factor of 2.4, because finer sampling accumulates more tracking
+jitter, while net speed at tau = 1 s moves by under 2%. On the same bouts the path-length ratio is
+@BOUT_DECODED_PATH_RATIO@×, which would read as a decoder that systematically under-reports when it
+is really the two signals being measured at different effective bandwidths.
+
+On the bouts that fail, decoded speed runs *above* measured — a bad decode jumps around, and those
+jumps read as fast turning. Worth carrying into REM, where no RMSE is available to catch it: a
+broken decode there will report a fast bump, not a slow one.
+
+### The cell-pair estimator is the broken part
+
+On those same bouts the correlogram estimator comes out at **@BOUT_CORRELOGRAM_RATIO@×** the
+measured speed. Worse than the offset is that it barely responds to the truth: across these bouts
+measured speed varies @BOUT_MEASURED_SPREAD@× and the correlogram estimate varies
+@BOUT_CORR_SPREAD@×, not in step with it.
+
+That settles what exp2 could not. The decode carries the angular speed; the estimator built on top
+of it loses it. Any future angular-velocity number should be read off a decode with a quality
+number attached, not from cell-pair correlograms.
+
+@FIGURES@
+
+### What is likely wrong with the estimator
 
 Diagnosed but not fixed, in decreasing order of confidence:
 

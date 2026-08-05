@@ -10,7 +10,12 @@ definition.
 import numpy as np
 import pytest
 
-from decode.head_direction import angular_speed, net_speed
+from decode.head_direction import (
+    angular_speed,
+    angular_velocity,
+    integrate_velocity,
+    net_speed,
+)
 
 DT = 1.0 / 39.0  # s, the tracking sample interval in this dataset
 
@@ -58,3 +63,44 @@ def test_wrapping_is_not_read_as_a_full_turn() -> None:
     angles = (0.1 * times + 6.2) % (2.0 * np.pi)  # crosses 2pi early and keeps going
     assert np.max(angular_speed(angles=angles, times=times)) < 1.0
     assert np.isclose(net_speed(angles=angles, times=times, tau_s=0.5), 0.1, rtol=0.05)
+
+
+def test_velocity_integrates_back_to_the_angle_it_came_from() -> None:
+    """The round trip must close to machine precision.
+
+    This cannot validate the *magnitude* of the velocity against anything external — the
+    reconstruction is exact by construction — but it does test everything around it: differencing
+    the short way round, a consistent sign convention, and dividing each step by the interval it
+    actually spans. Any of those wrong and the angle does not come back.
+    """
+    times, angles = _trace(duration=300.0)
+    velocity = angular_velocity(angles=angles, times=times)
+    rebuilt = integrate_velocity(velocity=velocity, times=times, initial_angle=float(angles[0]))
+    error = np.abs((rebuilt - angles + np.pi) % (2.0 * np.pi) - np.pi)
+    assert error.max() < 1e-9, f"round trip does not close: max error {error.max():.2e} rad"
+
+
+def test_signed_velocity_is_the_signed_form_of_the_speed() -> None:
+    """The two must not drift apart; `angular_speed` is documented as the absolute value."""
+    times, angles = _trace(duration=300.0)
+    assert np.allclose(
+        np.abs(angular_velocity(angles=angles, times=times)),
+        angular_speed(angles=angles, times=times),
+    )
+
+
+@pytest.mark.parametrize("stride", [1, 2, 4, 8])
+def test_net_speed_barely_moves_with_the_sampling_rate(stride: int) -> None:
+    """Net speed at a fixed tau must be a property of the head, not of the sampling rate.
+
+    Path length is not: on real wake tracking it falls by a factor of ~2.4 between 39 Hz and 2.4 Hz,
+    because finer sampling accumulates more tracking jitter. That makes path length unusable as a
+    ground truth to grade an estimator against, and net speed usable. This test pins the property
+    the choice rests on.
+    """
+    times, angles = _trace(duration=900.0, flip_period=4.0)
+    reference = net_speed(angles=angles, times=times, tau_s=1.0)
+    decimated = net_speed(angles=angles[::stride], times=times[::stride], tau_s=1.0)
+    assert np.isclose(decimated, reference, rtol=0.1), (
+        f"net speed moved from {reference:.3f} to {decimated:.3f} on {stride}x decimation"
+    )

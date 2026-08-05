@@ -21,7 +21,7 @@ To answer Q1, we are analyzing REM activity across metrics, animals, and dataset
   - **REM Diffusion Constant**: How fast does the head-direction system's internal compass drift during REM sleep, and how much of that drift is a property of the animal rather than the recording session?
   - **Angular speed**: How quickly the brain's estimate of heading is changing.
 - Cell-level:
-  - **Tuning to angular speed**: bin the animal's behavioral angular velocity and plot mean firing rate against it.
+  - **Tuning to angular speed**: bin the animal's behavioral angular velocity and plot mean firing rate against it. *[Not sure yet. Adrien's paper says angular speed at single cell level.]*
   - **Neuron intrinsic timescale**: Denoted τ and also called the spike-train autocorrelation decay constant. Measures how long a neuron's activity stays correlated with itself over time.
 
 ---
@@ -111,5 +111,8 @@ word of interpretation. `hd-exp check <qid>` recomputes and fails on any drift.
 - **DANDI REM scoring.** The pipeline reads one public dataset end to end. This differs from the
   scoring used for the original paper, so absolute *D* values here are **not** directly comparable
   to the paper's reported numbers — see [`docs/methods.md`](./docs/methods.md) §5.
-- **No wake decoding.** The wake RMSE decode-quality gate lived in the predecessor repo and needs
-  CRCNS head-angle files; it is not ported.
+- **Wake decoding is used as a quality gate, not as a result.** `angular1_exp3` decodes each wake
+  bout on its own and scores it against the head direction measured from the DANDI tracking LEDs, so
+  the gate needs no CRCNS files. Pooling all of DANDI's "Awake" intervals — which the REM path still
+  does for REM — decodes at 0.97-1.48 rad against a 0.5 rad bar, so state epochs should be chosen
+  per bout rather than inherited as a union.

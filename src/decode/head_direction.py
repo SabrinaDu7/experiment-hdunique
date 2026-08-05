@@ -64,6 +64,45 @@ def angular_speed(
 
 
 @jaxtyped(typechecker=beartype)
+def angular_velocity(
+    *, angles: Float[np.ndarray, " time"], times: Float[np.ndarray, " time"], smooth_s: float = 0.0
+) -> Float[np.ndarray, " _"]:
+    """Signed angular velocity in rad/s — positive anticlockwise.
+
+    `angular_speed` is the absolute value of this. The signed form exists so the derivative can be
+    integrated back to the angle it came from, which is the only way to check that the wrapping,
+    the sign convention and the time base are all consistent (see `integrate_velocity`).
+    """
+    if smooth_s > 0:
+        dt = float(np.median(np.diff(times)))
+        width = max(1, int(np.rint(smooth_s / dt)))
+        kernel = np.ones(width) / width
+        angles = np.convolve(np.unwrap(angles), kernel, mode="same") % (2.0 * np.pi)
+    delta = (np.diff(angles) + np.pi) % (2.0 * np.pi) - np.pi
+    return delta / np.diff(times)
+
+
+@jaxtyped(typechecker=beartype)
+def integrate_velocity(
+    *,
+    velocity: Float[np.ndarray, " step"],
+    times: Float[np.ndarray, " time"],
+    initial_angle: float,
+) -> Float[np.ndarray, " time"]:
+    """Rebuild the angle by accumulating `velocity` from `initial_angle`.
+
+    The inverse of `angular_velocity`. Round-tripping through the pair cannot validate the magnitude
+    of the velocity against anything external — the reconstruction is exact by construction — but it
+    does test everything around it: that differences are taken the short way round, that the sign
+    convention is consistent, and that each step is divided by the interval it actually spans rather
+    than by an assumed constant.
+    """
+    return (initial_angle + np.concatenate([[0.0], np.cumsum(velocity * np.diff(times))])) % (
+        2.0 * np.pi
+    )
+
+
+@jaxtyped(typechecker=beartype)
 def net_speed(
     *, angles: Float[np.ndarray, " time"], times: Float[np.ndarray, " time"], tau_s: float
 ) -> float:

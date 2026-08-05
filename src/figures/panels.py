@@ -16,7 +16,10 @@ import pandas as pd
 from beartype import beartype
 from jaxtyping import Float, jaxtyped
 
+import spud.angle_fns as af
 from core.config import VarianceConfig
+from core.env import figures_dir
+from figures.strips import save_figure
 
 #: Raw-D labels placed on a log-D axis, so the axis reads in rad^2/s.
 D_TICKS = np.array([0.25, 0.5, 1.0, 2.0, 4.0, 8.0])
@@ -410,3 +413,78 @@ def plot_bout_exit_strip(
     fig.savefig(save_path, dpi=150)
     plt.close(fig)
     print(f"  saved {save_path}")
+
+
+def bout_speed_traces(
+    *,
+    traces: list[dict],
+    session_id: str,
+    smooth_s: float = 1.0,
+    name: str,
+) -> Path:
+    """Angular speed over time, measured against decoded, with wake bout boundaries marked.
+
+    Bouts are separated by minutes to hours of sleep, so plotting against real time would be mostly
+    empty. They are concatenated instead and the joins drawn as vertical lines — the axis is bout
+    time, not session time, and no line is continuous across a join.
+
+    Both traces are box-smoothed identically before drawing. Raw 10 Hz angular speed is dominated by
+    bin-to-bin noise in both signals, and smoothing only one of them would manufacture a difference.
+    """
+    fig, axes = plt.subplots(
+        2, 1, figsize=(14, 6), sharex=True, gridspec_kw={"height_ratios": [3, 1]}
+    )
+    ax, ax_err = axes
+
+    offset, boundaries, labels, drawn = 0.0, [], [], []
+    for entry in traces:
+        times = entry["times"]
+        dt = float(np.median(np.diff(times))) if len(times) > 1 else 0.1
+        width = max(1, int(np.rint(smooth_s / dt)))
+        kernel = np.ones(width) / width
+
+        def speed(angles: np.ndarray, *, dt: float = dt, kernel: np.ndarray = kernel) -> np.ndarray:
+            delta = (np.diff(angles) + np.pi) % (2.0 * np.pi) - np.pi
+            return np.convolve(np.abs(delta / dt), kernel, mode="same")
+
+        x = offset + np.arange(len(times) - 1) * dt
+        measured_speed, decoded_speed = speed(entry["measured"]), speed(entry["decoded"])
+        drawn.extend([measured_speed, decoded_speed])
+        ax.plot(x, measured_speed, lw=0.6, color="0.15", label="measured (LEDs)")
+        ax.plot(x, decoded_speed, lw=0.6, color="tab:red", alpha=0.75, label="decoded")
+
+        # Per-bin circular error, so a bad stretch is visible rather than averaged into the
+        # bout's single RMSE. The decoded angle carries an arbitrary shift and flip, so it must be
+        # registered to the measured trace first — the difference is otherwise meaningless.
+        aligned, _, _, _ = af.shift_to_match_given_trace(entry["decoded"], entry["measured"])
+        err = np.abs((aligned - entry["measured"] + np.pi) % (2 * np.pi) - np.pi)
+        ax_err.plot(offset + np.arange(len(times)) * dt, err, lw=0.3, color="tab:blue", alpha=0.6)
+        if entry.get("usable"):
+            for axis in axes:
+                axis.axvspan(offset, offset + (len(times) - 1) * dt, color="tab:green", alpha=0.07)
+
+        offset += (len(times) - 1) * dt
+        boundaries.append(offset)
+        labels.append(f"bout {entry['bout_index']}\nRMSE {entry['rmse']:.2f}")
+
+    for edge in boundaries[:-1]:
+        for axis in axes:
+            axis.axvline(edge, color="k", lw=1.2, ls="--", alpha=0.7)
+    starts = [0.0, *boundaries[:-1]]
+    ax.set_xticks([(s + e) / 2 for s, e in zip(starts, boundaries, strict=True)])
+    ax.set_xticklabels(labels, fontsize=7)
+
+    handles, seen = [], set()
+    for handle, label in zip(*ax.get_legend_handles_labels(), strict=True):
+        if label not in seen:
+            handles.append(handle)
+            seen.add(label)
+    ax.legend(handles=handles, loc="upper right", fontsize=8)
+    ax.set_ylabel(f"angular speed (rad/s)\n{smooth_s:g} s smoothing")
+    ax.set_ylim(0, np.nanpercentile(np.concatenate(drawn), 99.5))
+    ax.set_title(f"{session_id} — one decoder per wake bout")
+    ax_err.axhline(0.5, color="k", lw=0.8, ls=":")
+    ax_err.set_ylabel("decode error\n(rad)")
+    ax_err.set_xlabel("concatenated bout time (dashed lines = bout boundaries)")
+    fig.tight_layout()
+    return save_figure(fig=fig, path=figures_dir() / f"{name}.png")

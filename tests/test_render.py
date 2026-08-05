@@ -78,11 +78,24 @@ def test_values_roundtrip_is_json_safe() -> None:
 def test_figure_names_the_file_it_points_at(tmp_path: Path) -> None:
     """A results document must say which file a figure is, not just embed it."""
     v = Values(question_id="q1", config={})
-    v.figure("FIG", tmp_path / "q1_exp1_windows.png", caption="windows")
-    rendered = v.tokens["FIG"]
+    v.figure("FIG_WINDOWS", tmp_path / "q1_exp1_windows.png", caption="windows")
+    rendered = v.tokens["FIG_WINDOWS"]
     assert "q1_exp1_windows.png" in rendered, "the filename must appear in the document"
     assert "![windows](" in rendered
-    assert v.notes["figures"]["FIG"].endswith("q1_exp1_windows.png")
+    assert v.notes["figures"]["FIG_WINDOWS"].endswith("q1_exp1_windows.png")
+
+
+def test_figure_token_is_forced_into_the_prefix_render_looks_for(tmp_path: Path) -> None:
+    """A figure recorded under a name without the `FIG_` prefix must still be found.
+
+    `@FIGURES@` collects tokens by that prefix, and the unreferenced-figure error keys off it too.
+    A figure named anything else is invisible to both: it renders nothing and raises nothing, which
+    is exactly how two real figures went missing from a results document.
+    """
+    v = Values(question_id="q1", config={})
+    v.figure("BOUT_TRACE", tmp_path / "q1_exp3_traces.png", caption="traces")
+    assert "FIG_BOUT_TRACE" in v.tokens
+    assert [k for k in v.tokens if k.startswith("FIG_")] == ["FIG_BOUT_TRACE"]
 
 
 def test_figures_token_includes_every_figure(tmp_path: Path) -> None:

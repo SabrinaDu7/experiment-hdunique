@@ -7,6 +7,7 @@
     "dt": 0.02,
     "max_lag_s": 1.0,
     "measured_smooth_s": 0.1,
+    "merge_gap_s": 0.0,
     "mice": [
       12,
       17,
@@ -15,27 +16,42 @@
       25,
       28
     ],
+    "min_bout_s": 300.0,
     "min_pairs": 3,
     "min_peak_rate_hz": 1.0,
     "min_rho": 0.3,
     "n_hd_bins": 60,
+    "n_restarts": 5,
+    "n_splits": 3,
     "net_taus_s": [
       0.25,
       0.5,
       1.0,
       2.0
     ],
+    "rmse_threshold": 0.5,
+    "seed": 0,
     "sessions": [],
     "speed_model": "chi2_3",
+    "stages": [
+      "sessions",
+      "bouts"
+    ],
     "states": [
       "Awake",
       "REM"
     ],
+    "trace_smooth_s": 5.0,
+    "train_frac": 0.8,
     "validation_tau_s": 1.0
   },
-  "generated": "2026-08-05T11:18:37+00:00",
-  "git_commit": "7eb5d43",
+  "generated": "2026-08-05T20:32:38+00:00",
+  "git_commit": "b2df157",
   "notes": {
+    "figures": {
+      "FIG_BOUT_TRACE_Mouse25_140130": "outputs/figures/angular1_exp3_traces_Mouse25-140130.png",
+      "FIG_BOUT_TRACE_Mouse28_140313": "outputs/figures/angular1_exp3_traces_Mouse28-140313.png"
+    },
     "input_sessions": 32
   },
   "question_id": "angular1",
@@ -43,11 +59,26 @@
     "AWAKE_HI": "0.47",
     "AWAKE_LO": "0.14",
     "AWAKE_MEDIAN": "0.20",
+    "BOUT_CORRELOGRAM_RATIO": "4.06",
+    "BOUT_CORR_SPREAD": "60.0",
+    "BOUT_DECODED_PATH_RATIO": "0.73",
+    "BOUT_DECODED_RATIO": "1.00",
+    "BOUT_MEASURED_SPREAD": "5.3",
+    "BOUT_N": "14",
+    "BOUT_N_USABLE": "2",
+    "BOUT_RMSE_FAIL": "0.994",
+    "BOUT_RMSE_MEDIAN": "0.93",
+    "BOUT_RMSE_PASS": "0.407",
+    "BOUT_SPEED_ERR_FAIL": "0.24",
+    "BOUT_SPEED_ERR_PASS": "0.00",
+    "BOUT_TABLE": "| session_id | bout_index | duration_s | rmse | usable | measured_net | decoded_net | measured_path | decoded_path | correlogram_speed |\n|---|---|---|---|---|---|---|---|---|---|\n| Mouse25-140130 | 0 | 342.00 | 1.55 | False | 0.11 | 1.19 | 0.31 | 3.17 | nan |\n| Mouse25-140130 | 1 | 1112.00 | 0.93 | False | 0.40 | 0.61 | 0.90 | 1.38 | 1.91 |\n| Mouse25-140130 | 2 | 3543.00 | 0.42 | True | 0.59 | 0.59 | 1.24 | 0.93 | 2.41 |\n| Mouse25-140130 | 3 | 1036.00 | 0.89 | False | 0.41 | 0.60 | 0.99 | 1.19 | 2.00 |\n| Mouse25-140130 | 4 | 381.00 | 0.93 | False | 0.25 | 0.65 | 0.60 | 1.40 | 2.48 |\n| Mouse25-140130 | 5 | 2083.00 | 1.22 | False | 0.60 | 0.78 | 1.41 | 1.34 | 2.01 |\n| Mouse28-140313 | 0 | 1043.00 | 1.17 | False | 0.12 | 0.77 | 0.35 | 2.03 | 4.31 |\n| Mouse28-140313 | 1 | 3875.00 | 0.39 | True | 0.47 | 0.48 | 1.03 | 0.74 | 1.93 |\n| Mouse28-140313 | 2 | 1214.00 | 0.78 | False | 0.21 | 0.47 | 0.55 | 1.24 | 1.69 |\n| Mouse28-140313 | 3 | 630.00 | 0.68 | False | 0.17 | 0.35 | 0.60 | 0.93 | 0.18 |\n| Mouse28-140313 | 4 | 403.00 | 0.77 | False | 0.22 | 0.55 | 0.98 | 1.63 | 0.67 |\n| Mouse28-140313 | 5 | 2520.00 | 1.06 | False | 0.30 | 0.43 | 1.31 | 1.28 | 10.76 |\n| Mouse28-140313 | 6 | 333.00 | 1.12 | False | 0.15 | 0.96 | 0.58 | 2.35 | nan |\n| Mouse28-140313 | 7 | 1719.00 | 1.59 | False | 0.59 | 0.54 | 1.38 | 0.86 | 2.41 |",
     "CONFOUND_CELLS_P": "0.73",
     "CONFOUND_CELLS_RHO": "0.063",
     "CONFOUND_PAIRS_P": "0.73",
     "CONFOUND_PAIRS_RHO": "0.063",
     "ESTIMATOR_AGREEMENT_RHO": "0.581",
+    "FIG_BOUT_TRACE_Mouse25_140130": "**Figure \u2014 Mouse25-140130: measured and decoded angular speed, one decoder per wake bout (green = decode passes the 0.5 rad bar)** (`angular1_exp3_traces_Mouse25-140130.png`)\n\n![Mouse25-140130: measured and decoded angular speed, one decoder per wake bout (green = decode passes the 0.5 rad bar)](../../outputs/figures/angular1_exp3_traces_Mouse25-140130.png)",
+    "FIG_BOUT_TRACE_Mouse28_140313": "**Figure \u2014 Mouse28-140313: measured and decoded angular speed, one decoder per wake bout (green = decode passes the 0.5 rad bar)** (`angular1_exp3_traces_Mouse28-140313.png`)\n\n![Mouse28-140313: measured and decoded angular speed, one decoder per wake bout (green = decode passes the 0.5 rad bar)](../../outputs/figures/angular1_exp3_traces_Mouse28-140313.png)",
     "NET_BY_TAU": "| tau_s | measured_net_speed |\n|---|---|\n| 0.25 | 1.18 |\n| 0.50 | 0.80 |\n| 1.00 | 0.51 |\n| 2.00 | 0.34 |",
     "N_BOTH_STATES": "32",
     "N_MICE": "6",
