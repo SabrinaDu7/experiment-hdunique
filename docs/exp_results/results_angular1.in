@@ -1,0 +1,136 @@
+# angular1 — results
+
+> **Question.** How fast does the head-direction signal turn, in wake and in REM, across animals
+> and sessions?
+
+Methods: [`instructions-angular1.md`](../exp_instructions/instructions-angular1.md).
+
+## Headline: the estimator does not survive its own validation
+
+**The angular speeds below should not be used.** The estimator is verified correct on synthetic
+spikes — it recovers a known speed within a factor of two and orders four speeds correctly — but on
+these recordings it does not reproduce the head speed measured from the tracking LEDs. Across
+@VALIDATION_N@ wake sessions where the answer is independently known, the correlation between
+estimate and truth is **ρ = @VALIDATION_NET_RHO@ (p = @VALIDATION_NET_P@)**.
+
+That is reported here rather than buried, because the numbers are not self-evidently broken. They
+come with a plausible REM/wake ratio and apparent differences between animals, and a per-session
+value like @AWAKE_MEDIAN@ rad/s invites interpretation rather than suspicion. Nothing in them warns
+that they are not measuring head speed; the validation is the only thing that does.
+
+**@N_SESSIONS@ sessions from @N_MICE@ mice**, ADn cells only.
+
+---
+
+## angular1_exp2 — the validation
+
+During wake the head angle is measured from the tracking LEDs, so the answer is independently known.
+The comparison is against the **net** angular speed at τ = @VALIDATION_TAU@ s — the displacement
+between the two ends of a window, divided by its length — because that is what the correlogram model
+reads. Path length, mean |dθ/dt|, counts a head that turns left then right twice and is an upper
+bound on the net speed; comparing against it would make a difference of definition look like a fault
+in the estimator, so both are shown.
+
+| ground truth | ρ with the estimate | p | estimate ÷ truth | within 2× |
+|---|---|---|---|---|
+| net displacement at τ = @VALIDATION_TAU@ s | **@VALIDATION_NET_RHO@** | @VALIDATION_NET_P@ | @VALIDATION_NET_RATIO@ (@VALIDATION_NET_RATIO_LO@ – @VALIDATION_NET_RATIO_HI@) | @VALIDATION_NET_WITHIN_2X@ / @VALIDATION_N@ |
+| path length | @VALIDATION_PATH_RHO@ | @VALIDATION_PATH_P@ | @VALIDATION_PATH_RATIO@ (@VALIDATION_PATH_RATIO_LO@ – @VALIDATION_PATH_RATIO_HI@) | @VALIDATION_PATH_WITHIN_2X@ / @VALIDATION_N@ |
+
+That the net and path-length rows differ is expected and measurable: net speed falls as the window
+lengthens, because more of the head's motion cancels inside it.
+
+@NET_BY_TAU@
+
+### The spread is the clearest symptom
+
+| | range across sessions | fold |
+|---|---|---|
+| measured net speed | @SPREAD_TRUTH_LO@ – @SPREAD_TRUTH_HI@ rad/s | @SPREAD_TRUTH_FOLD@× |
+| estimate | @SPREAD_EST_LO@ – @SPREAD_EST_HI@ rad/s | @SPREAD_EST_FOLD@× |
+
+Real animals differ in head speed by a factor of about @SPREAD_TRUTH_FOLD@. The estimate varies by
+@SPREAD_EST_FOLD@×, and none of that variation is the animal. A number moving far more than the
+quantity it claims to measure is moving for another reason.
+
+### It is not a sampling problem
+
+If the failure were noise, restricting to sessions with more tuned cells should help. It does not:
+
+@VALIDATION_BY_GATE@
+
+Nor is the estimate tracking an obvious artefact of sampling — cell count (ρ = @CONFOUND_CELLS_RHO@,
+p = @CONFOUND_CELLS_P@) and pair count (ρ = @CONFOUND_PAIRS_RHO@, p = @CONFOUND_PAIRS_P@).
+
+### Pooling the pairs did not rescue it
+
+The first implementation fitted each cell pair alone and took the median. Its per-pair estimates
+scattered by **@PAIRWISE_SCATTER@×** their own median — the single-pair fit is close to
+uninformative — so the session number was being set by whichever tail of failed fits happened to
+dominate. The current estimator instead fits one speed across all pairs at once, which on synthetic
+data is robust to adding as many uninformative pairs as real ones.
+
+It changed the answer without fixing it: the two estimators agree with each other at
+ρ = @ESTIMATOR_AGREEMENT_RHO@, and the pairwise one validates at ρ = @PAIRWISE_RHO@
+(p = @PAIRWISE_P@) against the truth's @VALIDATION_NET_RHO@. Both fail, so the fault is not in how
+the pairs are combined.
+
+### What is likely wrong
+
+Diagnosed but not fixed, in decreasing order of confidence:
+
+1. **Slow shared rate fluctuation.** Firing rates co-vary on timescales of seconds for reasons
+   unrelated to turning, and the model cannot tell that from a very slow sweep. Left uncorrected it
+   pinned sessions at the bottom of the search grid (one session returned 0.05 rad/s, the grid
+   minimum, against a measured 0.63). Rates are now high-passed at 5 s and lags capped at 1 s, which
+   removed the pinning but not the failure.
+2. **Wake is not one behaviour.** A session mixes long immobile stretches with brief fast turns, and
+   the estimator returns a single number for all of it. Which part dominates the correlogram is not
+   controlled, and it need not be the same part in every session.
+3. **One speed per session may be the wrong object.** The model assumes a χ²(3) *distribution* of
+   speeds with one free mean. If the real distribution is bimodal — still, versus turning — its mean
+   is not what the correlogram shape reports.
+
+## angular1_exp1 — the speeds themselves
+
+Recorded for completeness. Given the section above, **the between-animal comparison this question
+was for cannot be made from these numbers.**
+
+| state | median (rad/s) | IQR |
+|---|---|---|
+| wake | @AWAKE_MEDIAN@ | @AWAKE_LO@ – @AWAKE_HI@ |
+| REM | @REM_MEDIAN@ | @REM_LO@ – @REM_HI@ |
+
+In the @N_BOTH_STATES@ sessions estimated in both states, REM comes out at @REM_OVER_WAKE@× the wake
+speed; REM is higher in @PAIRED_N_REM_HIGHER@ of @N_BOTH_STATES@, Wilcoxon p = @PAIRED_P@.
+
+The ratio is the *least* damaged quantity here — both states pass through identical machinery with
+the same tuning curves, so a multiplicative bias divides out — but a shared bias is not the failure
+mode observed, so this is not a defence of it either.
+
+### By animal
+
+@PER_MOUSE@
+
+### By session
+
+@PER_SESSION@
+
+---
+
+## What was verified, and what that establishes
+
+`tests/test_angular_speed.py` runs the whole estimator on synthetic spikes generated at a **known**
+angular speed: recovery within a factor of two at 0.5, 1, 3 and 6 rad/s, correct ordering across the
+four, and — for the joint fit — stability when as many uninformative pairs as real ones are mixed
+in. `tests/test_head_direction.py` checks the ground truth itself: net and path-length speed agree
+when nothing reverses, net falls below path length when the head does reverse, net falls with the
+window, and neither reads a wrap across 2π as a full turn.
+
+Those tests found four real bugs, each of which had produced plausible-looking numbers: a rotation
+applied in the wrong direction, a cost function that rewarded implausibly fast speeds because
+Poisson noise shrinks correlations, a lag window too short for the speed being fitted, and the
+single-pair fit's one-sided failure.
+
+So the implementation does what the method says. **The method, applied to these recordings, does not
+recover the quantity it is supposed to** — which is exactly the thing only a comparison against
+measured ground truth could have revealed, and the reason `angular1_exp2` exists.

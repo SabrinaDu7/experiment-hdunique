@@ -50,6 +50,7 @@ an experiment module.
 | `variance1` | Is between-mouse variance in *D* larger than within-mouse? | [results](./docs/exp_results/results_variance1.md) |
 | `variance2` | How does variance partition across bouts, sessions and mice? | [results](./docs/exp_results/results_variance2.md) |
 | `bouts1` | Does REM bout context predict *D*? | [results](./docs/exp_results/results_bouts1.md) |
+| `angular1` | How fast does the HD signal turn, in wake and REM, across animals? | [results](./docs/exp_results/results_angular1.md) |
 
 `docs/porting/`, `docs/long_D/` and `docs/bout_level/` are historical narrative records from before
 this structure existed. They are kept for provenance; new work does not go there.

@@ -1,0 +1,88 @@
+{
+  "config": {
+    "cell_areas": [
+      "ADn"
+    ],
+    "detrend_s": 5.0,
+    "dt": 0.02,
+    "max_lag_s": 1.0,
+    "measured_smooth_s": 0.1,
+    "mice": [
+      12,
+      17,
+      20,
+      24,
+      25,
+      28
+    ],
+    "min_pairs": 3,
+    "min_peak_rate_hz": 1.0,
+    "min_rho": 0.3,
+    "n_hd_bins": 60,
+    "net_taus_s": [
+      0.25,
+      0.5,
+      1.0,
+      2.0
+    ],
+    "sessions": [],
+    "speed_model": "chi2_3",
+    "states": [
+      "Awake",
+      "REM"
+    ],
+    "validation_tau_s": 1.0
+  },
+  "generated": "2026-08-05T11:18:37+00:00",
+  "git_commit": "7eb5d43",
+  "notes": {
+    "input_sessions": 32
+  },
+  "question_id": "angular1",
+  "tokens": {
+    "AWAKE_HI": "0.47",
+    "AWAKE_LO": "0.14",
+    "AWAKE_MEDIAN": "0.20",
+    "CONFOUND_CELLS_P": "0.73",
+    "CONFOUND_CELLS_RHO": "0.063",
+    "CONFOUND_PAIRS_P": "0.73",
+    "CONFOUND_PAIRS_RHO": "0.063",
+    "ESTIMATOR_AGREEMENT_RHO": "0.581",
+    "NET_BY_TAU": "| tau_s | measured_net_speed |\n|---|---|\n| 0.25 | 1.18 |\n| 0.50 | 0.80 |\n| 1.00 | 0.51 |\n| 2.00 | 0.34 |",
+    "N_BOTH_STATES": "32",
+    "N_MICE": "6",
+    "N_SESSIONS": "32",
+    "PAIRED_N_REM_HIGHER": "10",
+    "PAIRED_P": "0.0026",
+    "PAIRWISE_P": "0.54",
+    "PAIRWISE_RHO": "-0.113",
+    "PAIRWISE_SCATTER": "5.2",
+    "PER_MOUSE": "| mouse | sessions | wake | rem | tuned |\n|---|---|---|---|---|\n| 12 | 5 | 0.17 | 0.16 | 40.00 |\n| 17 | 9 | 0.32 | 0.19 | 25.00 |\n| 20 | 5 | 0.37 | 0.19 | 8.00 |\n| 24 | 3 | 0.17 | 0.11 | 16.00 |\n| 25 | 6 | 0.15 | 0.17 | 17.50 |\n| 28 | 4 | 2.63 | 1.38 | 21.50 |",
+    "PER_SESSION": "| session_id | n_tuned | awake_speed | awake_speed_pairwise | rem_speed | measured_wake_net | measured_wake_speed |\n|---|---|---|---|---|---|---|\n| Mouse12-120806 | 39 | 0.17 | 0.23 | 0.16 | 0.63 | 2.65 |\n| Mouse12-120807 | 40 | 0.37 | 0.79 | 0.37 | 0.65 | 2.80 |\n| Mouse12-120808 | 39 | 0.14 | 0.39 | 0.11 | 0.83 | 4.12 |\n| Mouse12-120809 | 49 | 0.12 | 0.59 | 0.10 | 0.71 | 3.23 |\n| Mouse12-120810 | 44 | 0.22 | 0.55 | 0.17 | 0.77 | 3.82 |\n| Mouse17-130125 | 3 | 0.09 | 1.50 | 0.41 | 0.43 | 1.56 |\n| Mouse17-130128 | 19 | 3.11 | 0.98 | 0.19 | 0.47 | 1.97 |\n| Mouse17-130129 | 25 | 0.32 | 0.78 | 0.30 | 0.59 | 2.75 |\n| Mouse17-130130 | 25 | 0.14 | 0.50 | 0.14 | 0.60 | 2.60 |\n| Mouse17-130131 | 22 | 0.18 | 1.28 | 0.14 | 0.48 | 1.82 |\n| Mouse17-130201 | 26 | 0.71 | 1.28 | 0.39 | 0.53 | 1.93 |\n| Mouse17-130202 | 25 | 0.26 | 1.42 | 0.15 | 0.50 | 1.95 |\n| Mouse17-130203 | 26 | 3.43 | 1.71 | 0.10 | 0.43 | 2.05 |\n| Mouse17-130204 | 23 | 0.46 | 0.80 | 0.21 | 0.59 | 2.60 |\n| Mouse20-130514 | 5 | 0.94 | 0.77 | 0.35 | 0.48 | 2.01 |\n| Mouse20-130515 | 6 | 0.18 | 0.29 | 0.19 | 0.67 | 3.07 |\n| Mouse20-130516 | 8 | 0.07 | 0.09 | 0.10 | 0.70 | 3.32 |\n| Mouse20-130517 | 16 | 0.64 | 0.95 | 0.47 | 0.60 | 2.48 |\n| Mouse20-130520 | 10 | 0.37 | 1.50 | 0.11 | 0.70 | 3.63 |\n| Mouse24-131216 | 14 | 0.10 | 1.38 | 0.10 | 0.56 | 1.84 |\n| Mouse24-131217 | 16 | 0.17 | 1.12 | 0.11 | 0.56 | 1.74 |\n| Mouse24-131218 | 16 | 0.24 | 0.51 | 0.19 | 0.56 | 1.74 |\n| Mouse25-140124 | 10 | 0.50 | 0.63 | 0.38 | 0.38 | 1.75 |\n| Mouse25-140130 | 17 | 0.26 | 0.81 | 0.29 | 0.40 | 1.07 |\n| Mouse25-140131 | 20 | 0.14 | 0.26 | 0.17 | 0.40 | 1.12 |\n| Mouse25-140204 | 22 | 0.16 | 0.19 | 0.17 | 0.38 | 1.11 |\n| Mouse25-140205 | 18 | 0.12 | 0.19 | 0.12 | 0.35 | 0.97 |\n| Mouse25-140206 | 14 | 0.13 | 0.21 | 0.13 | 0.38 | 1.07 |\n| Mouse28-140311 | 13 | 5.11 | 3.70 | 3.51 | 0.33 | 1.26 |\n| Mouse28-140313 | 24 | 0.11 | 0.28 | 0.10 | 0.28 | 0.93 |\n| Mouse28-140317 | 20 | 0.15 | 0.57 | 0.15 | 0.35 | 1.96 |\n| Mouse28-140318 | 23 | 5.96 | 1.63 | 2.60 | 0.33 | 1.90 |",
+    "REM_HI": "0.32",
+    "REM_LO": "0.12",
+    "REM_MEDIAN": "0.17",
+    "REM_OVER_WAKE": "0.84",
+    "SPREAD_EST_FOLD": "88",
+    "SPREAD_EST_HI": "5.96",
+    "SPREAD_EST_LO": "0.07",
+    "SPREAD_TRUTH_FOLD": "3",
+    "SPREAD_TRUTH_HI": "0.83",
+    "SPREAD_TRUTH_LO": "0.28",
+    "VALIDATION_BY_GATE": "| min_tuned_cells | sessions | rho |\n|---|---|---|\n| 0 | 32 | -0.133 |\n| 10 | 28 | -0.075 |\n| 15 | 23 | -0.005 |\n| 20 | 17 | -0.098 |",
+    "VALIDATION_N": "32",
+    "VALIDATION_NET_P": "0.47",
+    "VALIDATION_NET_RATIO": "0.42",
+    "VALIDATION_NET_RATIO_HI": "0.86",
+    "VALIDATION_NET_RATIO_LO": "0.28",
+    "VALIDATION_NET_RHO": "-0.133",
+    "VALIDATION_NET_WITHIN_2X": "10",
+    "VALIDATION_PATH_P": "0.48",
+    "VALIDATION_PATH_RATIO": "0.12",
+    "VALIDATION_PATH_RATIO_HI": "0.25",
+    "VALIDATION_PATH_RATIO_LO": "0.06",
+    "VALIDATION_PATH_RHO": "0.131",
+    "VALIDATION_PATH_WITHIN_2X": "2",
+    "VALIDATION_TAU": "1.00"
+  }
+}
