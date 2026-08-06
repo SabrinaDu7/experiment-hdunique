@@ -111,3 +111,33 @@ def test_unreferenced_figure_is_an_error(tmp_path: Path) -> None:
     docs = _docs(tmp_path, "# Q1\n\nno figures here\n")
     with pytest.raises(KeyError, match="FIG_A"):
         render(question_id="q1", values=_values(FIG_A="![a](../../a.png)"), docs_root=docs)
+
+
+def test_shards_merge_back_into_one_table(tmp_path: Path, monkeypatch) -> None:
+    """A sweep split across processes must read back as if it had run in one.
+
+    Each worker writes its own table; the analysis is written against a single frame and should not
+    know the difference. Overlapping keys resolve to the last write, so re-running one shard fixes
+    that shard without duplicating its rows.
+    """
+    import pandas as pd
+
+    from analysis import io
+
+    monkeypatch.setenv("OUTPUT_PATH", str(tmp_path))
+    (tmp_path / "results").mkdir(parents=True, exist_ok=True)
+
+    io.save_table(frame=pd.DataFrame({"mouse": [12], "session": [1], "v": [1.0]}),
+                  name=io.shard_name(name="t", shard=0, n_shards=3))
+    io.save_table(frame=pd.DataFrame({"mouse": [17], "session": [2], "v": [2.0]}),
+                  name=io.shard_name(name="t", shard=1, n_shards=3))
+
+    merged = io.load_shards(name="t")
+    assert list(merged["mouse"]) == [12, 17]
+    assert io.load_shards(name="absent") is None
+
+    # A shard re-run must replace its rows, not append them.
+    io.save_table(frame=pd.DataFrame({"mouse": [17], "session": [2], "v": [99.0]}),
+                  name=io.shard_name(name="t", shard=1, n_shards=3))
+    again = io.load_shards(name="t")
+    assert len(again) == 2 and float(again.loc[again["mouse"] == 17, "v"].iloc[0]) == 99.0
