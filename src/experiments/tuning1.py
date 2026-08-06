@@ -9,7 +9,6 @@ import pynapple as nap
 from analysis import io, stats
 from analysis.values import Values
 from core.config import DANDI_MICE, DiffusionConfig
-from core.env import results_dir
 from decode import bout_decode, head_direction, loader
 from metrics import hd_tuning
 
@@ -54,9 +53,18 @@ class Config:
 
     # --- decode ---
     train_frac: float = 0.8
-    n_splits: int = 3
-    n_restarts: int = 5
+    #: Splits and best-of-N restarts per decode. Measured on Mouse25-140130's behavioural bout:
+    #: 3 splits x 5 restarts gives RMSE 0.402, 2 x 3 gives 0.403 for a third less compute, and
+    #: cutting `n_samples` to 8000 instead costs real accuracy (0.437). So the saving is taken in
+    #: splits and restarts, not in data.
+    n_splits: int = 2
+    n_restarts: int = 3
     rmse_threshold: float = 0.5
+    #: Lag for the net angular speed recorded per bout, and smoothing before differencing. Net
+    #: rather than path length: path length depends on the sampling rate and so cannot be compared
+    #: between a 39 Hz tracker and a 10 Hz decode (see docs/fyi.md).
+    net_tau_s: float = 1.0
+    speed_smooth_s: float = 0.1
     #: Also decode from the reliably-tuned subset alone (exp3). Doubles the decode cost.
     decode_reliable_subset: bool = True
     #: A subset decode needs at least this many cells to be worth attempting.
@@ -65,6 +73,10 @@ class Config:
     seed: int = 0
     #: Stages `collect` runs: "cells" is tuning only (minutes); "decode" adds the per-bout decode.
     stages: tuple[str, ...] = ("cells", "decode")
+    #: Split the sweep across processes: worker `shard` of `n_shards` takes every n-th session and
+    #: writes its own table. The decode is hours on one core and the machine has eight.
+    shard: int = 0
+    n_shards: int = 1
 
 
 def _wake_bouts(*, cfg: Config, data: nap.NWBFile) -> nap.IntervalSet:
@@ -190,12 +202,35 @@ def _decode_rows(*, cfg: Config, mouse: int, session: int, subset: list[int]) ->
                 seed=cfg.seed,
             )
             row[f"rmse_{label}"] = result.rmse if result else float("nan")
+
+            # Keep the angular speed of the decoded trace, not just how well it decoded. This is
+            # the quantity the whole topic is heading towards, it is free once the decode exists,
+            # and re-deriving it later would mean paying for every decode a second time.
+            speeds = (
+                bout_decode.speed_summary(
+                    angles=result.decoded, times=result.times,
+                    net_tau_s=cfg.net_tau_s, smooth_s=cfg.speed_smooth_s,
+                )
+                if result
+                else {"net": float("nan"), "path": float("nan")}
+            )
+            row[f"decoded_net_{label}"] = speeds["net"]
+            row[f"decoded_path_{label}"] = speeds["path"]
+            if label == "all" and result:
+                truth = bout_decode.speed_summary(
+                    angles=result.measured, times=result.times,
+                    net_tau_s=cfg.net_tau_s, smooth_s=cfg.speed_smooth_s,
+                )
+                row["measured_net"] = truth["net"]
+                row["measured_path"] = truth["path"]
         rows.append(row)
         print(
             f"  {row['session_id']} bout {index} ({row['duration_s']:.0f}s): "
             f"all {row.get('rmse_all', float('nan')):.3f}"
             + (f"  reliable ({len(subset)} cells) {row['rmse_reliable']:.3f}"
-               if "rmse_reliable" in row else "  reliable n/a"),
+               if "rmse_reliable" in row else "  reliable n/a")
+            + f"  | net measured {row.get('measured_net', float('nan')):.2f} "
+              f"decoded {row.get('decoded_net_all', float('nan')):.2f}",
             flush=True,
         )
     return rows
@@ -207,7 +242,7 @@ def collect(*, cfg: Config) -> None:
     targets = [
         (mouse, session) for mouse, session in loader.list_sessions()
         if mouse in cfg.mice and (not wanted or (mouse, session) in wanted)
-    ]
+    ][cfg.shard :: max(1, cfg.n_shards)]
 
     if "cells" in cfg.stages:
         rows = []
@@ -224,11 +259,14 @@ def collect(*, cfg: Config) -> None:
                       f"median MVL {frame['mvl'].median():.3f}", flush=True)
             rows.extend(got)
         if rows:
-            path = io.save_table(frame=pd.DataFrame(rows), name=f"{QUESTION_ID}_cells")
+            path = io.save_table(frame=pd.DataFrame(rows), name=io.shard_name(
+                name=f"{QUESTION_ID}_cells", shard=cfg.shard, n_shards=cfg.n_shards))
             print(f"  -> {len(rows)} cell-bout rows in {path.name}")
 
     if "decode" in cfg.stages:
-        cells = pd.read_parquet(results_dir() / f"{QUESTION_ID}_cells.parquet")
+        cells = io.load_shards(name=f"{QUESTION_ID}_cells")
+        if cells is None:
+            raise FileNotFoundError("Run the cells stage first: hd-exp collect tuning1 --stages cells")
         subsets = reliable_cells(frame=cells, cfg=cfg)
         rows = []
         for mouse, session in targets:
@@ -240,7 +278,8 @@ def collect(*, cfg: Config) -> None:
             except Exception as exc:  # noqa: BLE001
                 print(f"  skip Mouse{mouse}-{session}: {exc}")
         if rows:
-            path = io.save_table(frame=pd.DataFrame(rows), name=f"{QUESTION_ID}_decode")
+            path = io.save_table(frame=pd.DataFrame(rows), name=io.shard_name(
+                name=f"{QUESTION_ID}_decode", shard=cfg.shard, n_shards=cfg.n_shards))
             print(f"  -> {len(rows)} bouts in {path.name}")
 
 
@@ -258,7 +297,7 @@ def _bout_tuning(*, cells: pd.DataFrame, cfg: Config) -> pd.DataFrame:
 
 def analyse(*, cfg: Config, values: Values) -> None:
     """Report which cells are reliably tuned, and whether tuning predicts decode quality."""
-    cells = pd.read_parquet(results_dir() / f"{QUESTION_ID}_cells.parquet")
+    cells = io.load_shards(name=f"{QUESTION_ID}_cells")
     values.note("input_cell_bout_rows", len(cells))
     values.scalar("N_SESSIONS", int(cells["session_id"].nunique()), fmt="d")
     values.scalar("N_MICE", int(cells["mouse"].nunique()), fmt="d")
@@ -317,19 +356,18 @@ def analyse(*, cfg: Config, values: Values) -> None:
 
 def _exp2_and_3(*, cfg: Config, cells: pd.DataFrame, values: Values) -> None:
     """Tuning against decode error, and the reliable subset against the whole population."""
-    path = results_dir() / f"{QUESTION_ID}_decode.parquet"
+    decode = io.load_shards(name=f"{QUESTION_ID}_decode")
     tokens = ("DECODE_N", "TUNING_RMSE_RHO", "TUNING_RMSE_P", "TUNED_FRACTION_RHO",
               "TUNED_FRACTION_P", "CELLS_RMSE_RHO", "CELLS_RMSE_P", "DECODE_PASS_ALL",
               "SUBSET_N", "SUBSET_RMSE_MEDIAN", "ALL_RMSE_MEDIAN", "SUBSET_BETTER",
               "SUBSET_WILCOXON_P", "SUBSET_MEDIAN_CELLS")
-    if not path.exists():
+    if decode is None:
         for token in tokens:
             values.scalar(token, float("nan"))
         values.table("DECODE_TABLE", pd.DataFrame(
             [{"note": "run: hd-exp collect tuning1 --stages decode"}]))
         return
 
-    decode = pd.read_parquet(path)
     bout = _bout_tuning(cells=cells, cfg=cfg)
     merged = decode.merge(bout, on=["mouse", "session", "session_id", "bout_index"], how="inner")
     values.scalar("DECODE_N", len(merged), fmt="d")

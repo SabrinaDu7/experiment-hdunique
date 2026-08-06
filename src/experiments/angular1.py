@@ -86,6 +86,9 @@ class Config:
     stages: tuple[str, ...] = ("sessions", "bouts", "measured")
     #: exp4 reports every qualifying bout, with no cap - it costs nothing to include them all.
     measured_min_bout_s: float = 300.0
+    #: Split the sweep across processes; see `tuning1.Config.shard`.
+    shard: int = 0
+    n_shards: int = 1
 
 
 def _binned_rates(
@@ -500,9 +503,11 @@ def collect_sessions(*, cfg: Config) -> None:
     """Estimate angular speed for every session and write the table exp1/exp2 analyse."""
     wanted = {io.parse_session_spec(s) for s in cfg.sessions}
     rows = []
-    for mouse, session in loader.list_sessions():
-        if mouse not in cfg.mice or (wanted and (mouse, session) not in wanted):
-            continue
+    targets = [
+        (mouse, session) for mouse, session in loader.list_sessions()
+        if mouse in cfg.mice and (not wanted or (mouse, session) in wanted)
+    ][cfg.shard :: max(1, cfg.n_shards)]
+    for mouse, session in targets:
         try:
             row = _session_estimate(cfg=cfg, mouse=mouse, session=session)
         except Exception as exc:  # noqa: BLE001 - one bad session must not stop the sweep
@@ -520,13 +525,14 @@ def collect_sessions(*, cfg: Config) -> None:
         print("No usable sessions.")
         return
     frame = pd.DataFrame(rows)
-    path = io.save_table(frame=frame, name=f"{QUESTION_ID}_speeds")
+    path = io.save_table(frame=frame, name=io.shard_name(
+        name=f"{QUESTION_ID}_speeds", shard=cfg.shard, n_shards=cfg.n_shards))
     print(f"  -> {len(frame)} sessions in {path.name}")
 
 
 def analyse(*, cfg: Config, values: Values) -> None:
     """Report angular speed by state and animal, and check the wake estimate against ground truth."""
-    frame = pd.read_parquet(results_dir() / f"{QUESTION_ID}_speeds.parquet")
+    frame = io.load_shards(name=f"{QUESTION_ID}_speeds")
     values.note("input_sessions", len(frame))
     values.scalar("N_SESSIONS", len(frame), fmt="d")
     values.scalar("N_MICE", int(frame["mouse"].nunique()), fmt="d")

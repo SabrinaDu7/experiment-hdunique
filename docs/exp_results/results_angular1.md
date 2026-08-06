@@ -20,7 +20,7 @@ answer is independently known from the tracking LEDs, the correlation between es
 
 **Angular speed read off the decoded ring angle does work — where the decode is verified.** On the
 2 wake bouts whose own held-out decode clears the 0.5 rad bar, decoded angular speed is
-**1.00×** the measured speed. That is the route to a usable number, and it comes with
+**1.02×** the measured speed. That is the route to a usable number, and it comes with
 a quality gate the correlogram route never had.
 
 The first finding is reported rather than buried because the numbers are not self-evidently broken.
@@ -160,37 +160,37 @@ have a decode good enough to trust (held-out RMSE below 0.5 rad, the published b
 | session_id | bout_index | duration_s | rmse | usable | measured_net | decoded_net | measured_path | decoded_path | correlogram_speed |
 |---|---|---|---|---|---|---|---|---|---|
 | Mouse25-140130 | 0 | 342.00 | 1.55 | False | 0.11 | 1.19 | 0.31 | 3.17 | nan |
-| Mouse25-140130 | 1 | 1112.00 | 0.93 | False | 0.40 | 0.61 | 0.90 | 1.38 | 1.91 |
-| Mouse25-140130 | 2 | 3543.00 | 0.42 | True | 0.59 | 0.59 | 1.24 | 0.93 | 2.41 |
-| Mouse25-140130 | 3 | 1036.00 | 0.89 | False | 0.41 | 0.60 | 0.99 | 1.19 | 2.00 |
-| Mouse25-140130 | 4 | 381.00 | 0.93 | False | 0.25 | 0.65 | 0.60 | 1.40 | 2.48 |
-| Mouse25-140130 | 5 | 2083.00 | 1.22 | False | 0.60 | 0.78 | 1.41 | 1.34 | 2.01 |
-| Mouse28-140313 | 0 | 1043.00 | 1.17 | False | 0.12 | 0.77 | 0.35 | 2.03 | 4.31 |
-| Mouse28-140313 | 1 | 3875.00 | 0.39 | True | 0.47 | 0.48 | 1.03 | 0.74 | 1.93 |
+| Mouse25-140130 | 1 | 1112.00 | 0.92 | False | 0.38 | 0.61 | 0.84 | 1.38 | 1.92 |
+| Mouse25-140130 | 2 | 3543.00 | 0.40 | True | 0.58 | 0.59 | 1.08 | 0.93 | 2.41 |
+| Mouse25-140130 | 3 | 1036.00 | 0.87 | False | 0.39 | 0.60 | 0.92 | 1.19 | 2.00 |
+| Mouse25-140130 | 4 | 381.00 | 0.93 | False | 0.25 | 0.65 | 0.59 | 1.40 | 2.50 |
+| Mouse25-140130 | 5 | 2083.00 | 1.19 | False | 0.57 | 0.78 | 1.10 | 1.34 | 2.16 |
+| Mouse28-140313 | 0 | 1043.00 | 1.17 | False | 0.12 | 0.77 | 0.35 | 2.03 | 4.22 |
+| Mouse28-140313 | 1 | 3875.00 | 0.37 | True | 0.46 | 0.48 | 0.90 | 0.74 | 1.91 |
 | Mouse28-140313 | 2 | 1214.00 | 0.78 | False | 0.21 | 0.47 | 0.55 | 1.24 | 1.69 |
-| Mouse28-140313 | 3 | 630.00 | 0.68 | False | 0.17 | 0.35 | 0.60 | 0.93 | 0.18 |
-| Mouse28-140313 | 4 | 403.00 | 0.77 | False | 0.22 | 0.55 | 0.98 | 1.63 | 0.67 |
-| Mouse28-140313 | 5 | 2520.00 | 1.06 | False | 0.30 | 0.43 | 1.31 | 1.28 | 10.76 |
-| Mouse28-140313 | 6 | 333.00 | 1.12 | False | 0.15 | 0.96 | 0.58 | 2.35 | nan |
-| Mouse28-140313 | 7 | 1719.00 | 1.59 | False | 0.59 | 0.54 | 1.38 | 0.86 | 2.41 |
+| Mouse28-140313 | 3 | 630.00 | 0.65 | False | 0.16 | 0.35 | 0.46 | 0.93 | 0.33 |
+| Mouse28-140313 | 4 | 403.00 | 0.77 | False | 0.19 | 0.55 | 0.76 | 1.63 | 0.72 |
+| Mouse28-140313 | 5 | 2520.00 | 0.88 | False | 0.24 | 0.43 | 1.02 | 1.28 | 0.26 |
+| Mouse28-140313 | 6 | 333.00 | 1.11 | False | 0.15 | 0.96 | 0.53 | 2.35 | nan |
+| Mouse28-140313 | 7 | 1719.00 | 1.58 | False | 0.57 | 0.54 | 1.29 | 0.86 | 2.41 |
 
 ### The decode is fine when the bout is one behaviour
 
-Median RMSE is 0.407 on the bouts that pass and 0.994 on those that do not.
+Median RMSE is 0.387 on the bouts that pass and 0.922 on those that do not.
 The bouts that pass are the long behavioural sessions; the ones that fail are wake in the rest box,
 where the animal barely turns its head, the ring is never traversed, and there is nothing for the
 manifold fit to recover. Pooling those together — which is what the rest of this repo does — is what
 produced the 0.97–1.48 rad decode that started this investigation.
 
-On bouts whose decode passes, decoded angular speed is **1.00×** the measured speed
-— a median absolute error of 0.00 rad/s, against 0.24 rad/s on the
+On bouts whose decode passes, decoded angular speed is **1.02×** the measured speed
+— a median absolute error of 0.01 rad/s, against 0.24 rad/s on the
 bouts that fail. **Angular speed read straight off a verified decode is the measured speed.**
 
 That comparison is made on **net** displacement at a fixed lag, not on path length, and the choice is
 not cosmetic. Path length is not a well-defined property of the head: decimating the same wake bout
 from 39 Hz to 2.4 Hz drops it by a factor of 2.4, because finer sampling accumulates more tracking
 jitter, while net speed at tau = 1 s moves by under 2%. On the same bouts the path-length ratio is
-0.73×, which would read as a decoder that systematically under-reports when it
+0.84×, which would read as a decoder that systematically under-reports when it
 is really the two signals being measured at different effective bandwidths.
 
 On the bouts that fail, decoded speed runs *above* measured — a bad decode jumps around, and those
@@ -199,10 +199,10 @@ broken decode there will report a fast bump, not a slow one.
 
 ### The cell-pair estimator is the broken part
 
-On those same bouts the correlogram estimator comes out at **4.06×** the
+On those same bouts the correlogram estimator comes out at **4.14×** the
 measured speed. Worse than the offset is that it barely responds to the truth: across these bouts
-measured speed varies 5.3× and the correlogram estimate varies
-60.0×, not in step with it.
+measured speed varies 5.1× and the correlogram estimate varies
+16.4×, not in step with it.
 
 That settles what exp2 could not. The decode carries the angular speed; the estimator built on top
 of it loses it. Any future angular-velocity number should be read off a decode with a quality
@@ -319,7 +319,7 @@ measured ground truth could have revealed, and the reason `angular1_exp2` exists
 
 ## Provenance
 
-Generated 2026-08-05T22:08:54+00:00 from commit `4bfe83f`.
+Generated 2026-08-05T22:57:26+00:00 from commit `cb89022`.
 
 | config | value |
 |---|---|

@@ -93,6 +93,30 @@ def with_log_d(*, frame: pd.DataFrame, column: str) -> pd.DataFrame:
     return out.reset_index(drop=True)
 
 
+def load_shards(*, name: str) -> pd.DataFrame | None:
+    """Concatenate `<name>.parquet` and any `<name>_shard*.parquet` written by parallel workers.
+
+    A long sweep is split across processes by session, each writing its own shard, because the work
+    is embarrassingly parallel and running it on one core wastes most of the machine. Readers should
+    not have to know whether a table arrived in one piece or eight.
+    """
+    paths = sorted(results_dir().glob(f"{name}.parquet")) + sorted(
+        results_dir().glob(f"{name}_shard*.parquet")
+    )
+    if not paths:
+        return None
+    frame = pd.concat([pd.read_parquet(p) for p in paths], ignore_index=True)
+    keys = [c for c in ("mouse", "session", "bout_index") if c in frame.columns]
+    if keys:
+        frame = frame.drop_duplicates(subset=keys, keep="last").sort_values(keys)
+    return frame.reset_index(drop=True)
+
+
+def shard_name(*, name: str, shard: int, n_shards: int) -> str:
+    """Table name for one worker's slice; unsuffixed when the sweep is not split."""
+    return name if n_shards <= 1 else f"{name}_shard{shard}"
+
+
 def save_table(*, frame: pd.DataFrame, name: str) -> Path:
     """Write a result table to `outputs/results/<name>.parquet` and return its path."""
     results_dir().mkdir(parents=True, exist_ok=True)
